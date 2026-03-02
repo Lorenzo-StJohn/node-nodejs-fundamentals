@@ -1,6 +1,6 @@
 import { parseArgs } from 'util';
-import { glob, access } from 'fs/promises';
-import { join, dirname, relative } from 'path';
+import { glob, access, stat } from 'fs/promises';
+import { join, dirname, relative, extname } from 'path';
 import { fileURLToPath } from 'url';
 
 const findByExt = async () => {
@@ -70,15 +70,18 @@ const findByExt = async () => {
 
   const entries = [];
 
-  const getEntries = async (pathToFolder, pathWithRecursion) => {
+  const getEntries = async (pathToFolder, pathWithRecursion, ext) => {
     for await (const entry of glob(pathWithRecursion)) {
       const path = relative(pathToFolder, entry);
-      entries.push(path);
+      const entryStat = await stat(entry);
+      if (entryStat.isFile() && extname(path) === `.${ext}`) {
+        entries.push(path);
+      }
     }
   };
 
   try {
-    await getEntries(pathToFolder, pathWithRecursion);
+    await getEntries(pathToFolder, pathWithRecursion, ext);
   } catch (err) {
     console.error(err);
     return;
