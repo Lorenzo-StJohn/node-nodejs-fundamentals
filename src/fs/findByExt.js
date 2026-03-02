@@ -21,6 +21,7 @@ const findByExt = async () => {
     console.log(
       'P. S. There are should be either exactly one argument named ext with its value or no arguments at all.',
     );
+    return;
   }
 
   const FOLDER_NAME = 'workspace';
