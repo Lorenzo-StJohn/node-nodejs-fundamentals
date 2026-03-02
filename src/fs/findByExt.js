@@ -1,4 +1,7 @@
 import { parseArgs } from 'util';
+import { glob, access } from 'fs/promises';
+import { join, dirname, relative } from 'path';
+import { fileURLToPath } from 'url';
 
 const findByExt = async () => {
   // Write your code here
@@ -80,6 +83,13 @@ const findByExt = async () => {
     console.error(err);
     return;
   }
+
+  const printArrayAlphabetically = (arr) => {
+    const sortedArray = arr.toSorted();
+    sortedArray.forEach((entry) => console.log(entry));
+  };
+
+  printArrayAlphabetically(entries);
 };
 
 await findByExt();
