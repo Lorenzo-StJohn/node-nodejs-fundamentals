@@ -3,11 +3,7 @@ import { join, dirname, relative } from 'path';
 import { fileURLToPath } from 'url';
 
 const snapshot = async () => {
-  // Write your code here
-  // Recursively scan workspace directory
-  // Write snapshot.json with:
-  // - rootPath: absolute path to workspace
-  // - entries: flat array of relative paths and metadata
+  // The workspace directory should be either in project folder or in src/fs
 
   const FOLDER_NAME = 'workspace';
   const JSON_NAME = 'snapshot.json';
