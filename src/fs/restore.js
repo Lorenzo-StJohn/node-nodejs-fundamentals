@@ -10,7 +10,7 @@ const restore = async () => {
   const pathToThisFolder = dirname(pathToThisFile);
   const pathToRoot = join(pathToThisFolder, '..', '..');
 
-  const findFile = async (pathToRoot, pathToThisFolder, fileName) => {
+  const getFilePath = async (pathToRoot, pathToThisFolder, fileName) => {
     let isFileInRoot;
     let isFileInThisFolder;
     const pathToFileInRoot = join(pathToRoot, fileName);
@@ -34,7 +34,7 @@ const restore = async () => {
 
   let pathToJsonFile;
   try {
-    pathToJsonFile = await findFile(pathToRoot, pathToThisFolder, JSON_NAME);
+    pathToJsonFile = await getFilePath(pathToRoot, pathToThisFolder, JSON_NAME);
   } catch (err) {
     console.error(err);
     console.log(
