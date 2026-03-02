@@ -1,4 +1,4 @@
-import { glob, stat, access, readFile } from 'fs/promises';
+import { glob, stat, access, readFile, writeFile } from 'fs/promises';
 import { join, dirname, relative } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -10,6 +10,7 @@ const snapshot = async () => {
   // - entries: flat array of relative paths and metadata
 
   const FOLDER_NAME = 'workspace';
+  const JSON_NAME = 'snapshot.json';
   const pathToThisFile = fileURLToPath(import.meta.url);
   const pathToThisFolder = dirname(pathToThisFile);
   const pathToRoot = join(pathToThisFolder, '..', '..');
@@ -73,6 +74,18 @@ const snapshot = async () => {
 
   try {
     snapshotObj = await createSnapshotObj(pathWithRecursion);
+  } catch (err) {
+    console.error(err);
+    return;
+  }
+
+  const writeJsonFile = async (path, obj) => {
+    await writeFile(path, JSON.stringify(obj));
+  };
+
+  try {
+    const path = join(dirname(pathToFolder), JSON_NAME);
+    await writeJsonFile(path, snapshotObj);
   } catch (err) {
     console.error(err);
     return;
