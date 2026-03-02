@@ -1,5 +1,5 @@
-import { glob, stat, access } from 'fs/promises';
-import { join, dirname } from 'path';
+import { glob, stat, access, readFile } from 'fs/promises';
+import { join, dirname, relative } from 'path';
 import { fileURLToPath } from 'url';
 
 const snapshot = async () => {
@@ -48,6 +48,35 @@ const snapshot = async () => {
   }
 
   const pathWithRecursion = join(pathToFolder, '**', '*');
+
+  const createSnapshotObj = async (pathWithRecursion) => {
+    const snapshotObj = {
+      rootPath: pathToFolder,
+      entries: [],
+    };
+    for await (const entry of glob(pathWithRecursion)) {
+      const entryObj = {};
+      entryObj.path = relative(pathToFolder, entry);
+      const entryStat = await stat(entry);
+      entryObj.type = entryStat.isFile() ? 'file' : 'directory';
+      if (entryObj.type === 'file') {
+        entryObj.size = entryStat.size;
+        const contentBuffer = await readFile(entry);
+        entryObj.content = contentBuffer.toString('base64');
+      }
+      snapshotObj.entries.push(entryObj);
+    }
+    return snapshotObj;
+  };
+
+  let snapshotObj;
+
+  try {
+    snapshotObj = await createSnapshotObj(pathWithRecursion);
+  } catch (err) {
+    console.error(err);
+    return;
+  }
 };
 
 await snapshot();
