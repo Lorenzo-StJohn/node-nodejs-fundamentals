@@ -1,9 +1,50 @@
+import { glob, stat, access } from 'fs/promises';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
 const snapshot = async () => {
   // Write your code here
   // Recursively scan workspace directory
   // Write snapshot.json with:
   // - rootPath: absolute path to workspace
   // - entries: flat array of relative paths and metadata
+
+  const FOLDER_NAME = 'workspace';
+  const pathToThisFile = fileURLToPath(import.meta.url);
+  const pathToThisFolder = dirname(pathToThisFile);
+  const pathToRoot = join(pathToThisFolder, '..', '..');
+
+  const findFolder = async (pathToRoot, pathToThisFolder, folderName) => {
+    let isFolderInRoot;
+    let isFolderInThisFolder;
+    const pathToFolderInRoot = join(pathToRoot, folderName);
+    const pathToFolderInThisFolder = join(pathToThisFolder, folderName);
+    try {
+      await access(pathToFolderInRoot);
+      return pathToFolderInRoot;
+    } catch (err) {
+      isFolderInRoot = false;
+    }
+    try {
+      await access(pathToFolderInThisFolder);
+      return pathToFolderInThisFolder;
+    } catch (err) {
+      isFolderInThisFolder = false;
+    }
+    if (!isFolderInRoot && !isFolderInThisFolder) {
+      throw new Error('FS operation failed');
+    }
+  };
+
+  let pathToFolder;
+  try {
+    pathToFolder = await findFolder(pathToRoot, pathToThisFolder, FOLDER_NAME);
+  } catch (err) {
+    console.error(err);
+    return;
+  }
+
+  const pathWithRecursion = join(pathToFolder, '**', '*');
 };
 
 await snapshot();
