@@ -7,6 +7,7 @@ const restore = async () => {
   // The snapshot.json should be either in project folder or in src/fs
 
   const JSON_NAME = 'snapshot.json';
+  const FOLDER_NAME = 'workspace_restored';
   const pathToThisFile = fileURLToPath(import.meta.url);
   const pathToThisFolder = dirname(pathToThisFile);
   const pathToRoot = join(pathToThisFolder, '..', '..');
@@ -57,7 +58,7 @@ const restore = async () => {
     return;
   }
 
-  const pathToFolder = snapshotObj.rootPath + '_restored';
+  const pathToFolder = join(dirname(pathToJsonFile), FOLDER_NAME);
 
   const createFolder = async (pathToFolder) => {
     try {
