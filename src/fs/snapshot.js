@@ -11,7 +11,7 @@ const snapshot = async () => {
   const pathToThisFolder = dirname(pathToThisFile);
   const pathToRoot = join(pathToThisFolder, '..', '..');
 
-  const findFolder = async (pathToRoot, pathToThisFolder, folderName) => {
+  const getFolderPath = async (pathToRoot, pathToThisFolder, folderName) => {
     let isFolderInRoot;
     let isFolderInThisFolder;
     const pathToFolderInRoot = join(pathToRoot, folderName);
@@ -35,7 +35,11 @@ const snapshot = async () => {
 
   let pathToFolder;
   try {
-    pathToFolder = await findFolder(pathToRoot, pathToThisFolder, FOLDER_NAME);
+    pathToFolder = await getFolderPath(
+      pathToRoot,
+      pathToThisFolder,
+      FOLDER_NAME,
+    );
   } catch (err) {
     console.error(err);
     console.log(
