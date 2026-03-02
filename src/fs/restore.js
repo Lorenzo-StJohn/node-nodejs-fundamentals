@@ -1,4 +1,4 @@
-import { access } from 'fs/promises';
+import { access, readFile, mkdir } from 'fs/promises';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -53,6 +53,30 @@ const restore = async () => {
     snapshotObj = await readJsonFile(pathToJsonFile);
   } catch (err) {
     console.error(err);
+    return;
+  }
+
+  const pathToFolder = snapshotObj.rootPath + '_restored';
+
+  const createFolder = async (pathToFolder) => {
+    try {
+      await mkdir(pathToFolder);
+    } catch (err) {
+      if (err.code === 'EEXIST') {
+        throw new Error('FS operation failed');
+      } else {
+        throw err;
+      }
+    }
+  };
+
+  try {
+    await createFolder(pathToFolder);
+  } catch (err) {
+    console.error(err);
+    if (err.message === 'FS operation failed') {
+      console.log('P. S. Directory workspace_restored already exists.');
+    }
     return;
   }
 };
