@@ -1,6 +1,7 @@
-import { access, readFile, mkdir } from 'fs/promises';
+import { access, readFile, mkdir, writeFile } from 'fs/promises';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { Buffer } from 'buffer';
 
 const restore = async () => {
   // The snapshot.json should be either in project folder or in src/fs
@@ -79,6 +80,20 @@ const restore = async () => {
     }
     return;
   }
+
+  const writeContentToFolder = async (pathToFolder, obj) => {
+    for await (const entry of obj.entries) {
+      const path = join(pathToFolder, entry.path);
+      if (entry.type === 'directory') {
+        await mkdir(path, { recursive: true });
+      } else {
+        const contentBuffer = Buffer.from(entry.content, 'base64');
+        await writeFile(path, contentBuffer);
+      }
+    }
+  };
+
+  await writeContentToFolder(pathToFolder, snapshotObj);
 };
 
 await restore();
