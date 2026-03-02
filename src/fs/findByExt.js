@@ -4,9 +4,8 @@ import { join, dirname, relative } from 'path';
 import { fileURLToPath } from 'url';
 
 const findByExt = async () => {
-  // Write your code here
-  // Recursively find all files with specific extension
-  // Parse --ext CLI argument (default: .txt)
+  // The workspace directory should be either in project folder or in src/fs
+
   const options = {
     ext: {
       type: 'string',
