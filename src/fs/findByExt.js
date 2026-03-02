@@ -66,6 +66,9 @@ const findByExt = async () => {
     return;
   }
 
+  if (ext[0] === '.') {
+    ext = ext.substring(1);
+  }
   const pathWithRecursion = join(pathToFolder, '**', `*.${ext}`);
 
   const entries = [];
