@@ -42,6 +42,19 @@ const restore = async () => {
     );
     return;
   }
+
+  const readJsonFile = async (pathToJsonFile) => {
+    const data = await readFile(pathToJsonFile, { encoding: 'utf8' });
+    return JSON.parse(data);
+  };
+
+  let snapshotObj;
+  try {
+    snapshotObj = await readJsonFile(pathToJsonFile);
+  } catch (err) {
+    console.error(err);
+    return;
+  }
 };
 
 await restore();
