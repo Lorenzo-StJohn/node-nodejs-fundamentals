@@ -1,11 +1,6 @@
-import { uptime } from 'process';
 import { createInterface } from 'readline/promises';
 
 const interactive = () => {
-  // Write your code here
-  // Use readline module for interactive CLI
-  // Support commands: uptime, cwd, date, exit
-  // Handle Ctrl+C and unknown commands
   const rl = createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -28,7 +23,9 @@ const interactive = () => {
     void printPrompt();
   };
 
-  const onExit = async () => {};
+  const onExit = () => {
+    rl.close();
+  };
 
   const printPrompt = async () => {
     const command = await rl.question('>');
@@ -46,7 +43,7 @@ const interactive = () => {
         break;
       }
       case 'exit': {
-        void onExit();
+        onExit();
         break;
       }
       default: {
@@ -55,6 +52,15 @@ const interactive = () => {
       }
     }
   };
+
+  const handleClosing = () => {
+    console.log('Goodbye');
+    process.exit(0);
+  };
+
+  rl.on('close', handleClosing);
+
+  rl.on('SIGINT', handleClosing);
 
   void printPrompt();
 };
