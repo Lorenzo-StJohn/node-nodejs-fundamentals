@@ -4,6 +4,8 @@ const progress = () => {
   // Update in place using \r every 100ms
   // Format: [████████████████████          ] 67%
 
+  const COLOR_RESET = '\x1b[0m';
+
   const constructProgressBarParts = (
     startTime,
     duration,
@@ -33,6 +35,25 @@ const progress = () => {
     if (isNaN(bb) || bb < 0 || bb > 255) return '';
     const prefix = '\x1b[38;2;';
     return `${prefix}${rr};${gg};${bb}m`;
+  };
+
+  const getArgs = () => {
+    const args = process.argv;
+    const argObj = {};
+    let currentFlag = null;
+
+    for (const arg of args) {
+      if (arg.startsWith('-')) {
+        if (arg.startsWith('--')) {
+          currentFlag = arg.substring(2);
+        } else {
+          currentFlag = null;
+        }
+      } else if (currentFlag) {
+        argObj[currentFlag] = arg;
+      }
+    }
+    return argObj;
   };
 };
 
