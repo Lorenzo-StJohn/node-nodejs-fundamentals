@@ -21,12 +21,18 @@ const interactive = () => {
     void printPrompt();
   };
 
-  const onDate = async () => {};
+  const onDate = () => {
+    console.log(
+      `Current date and time in ISO format (UTC): ${new Date().toISOString()}`,
+    );
+    void printPrompt();
+  };
+
   const onExit = async () => {};
 
   const printPrompt = async () => {
-    const userInput = await rl.question('>');
-    switch (userInput) {
+    const command = await rl.question('>');
+    switch (command) {
       case 'uptime': {
         onUptime();
         break;
@@ -36,7 +42,7 @@ const interactive = () => {
         break;
       }
       case 'date': {
-        void onDate();
+        onDate();
         break;
       }
       case 'exit': {
