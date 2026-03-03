@@ -1,3 +1,5 @@
+import { EventEmitter } from 'events';
+
 const progress = () => {
   // Write your code here
   // Simulate progress bar from 0% to 100% over ~5 seconds
@@ -9,6 +11,7 @@ const progress = () => {
   const DEFAULT_INTERVAL = 100;
   const DEFAULT_LENGTH = 30;
   const DEFAULT_COLOR = '';
+  const PROGRESS_DONE = 'progress-done';
 
   const constructProgressBarParts = (
     startTime,
@@ -16,16 +19,19 @@ const progress = () => {
     length,
     color,
     reset,
+    eventEmitter,
+    eventName,
   ) => {
     const progressStatus = Math.min((Date.now() - startTime) / duration, 1);
+    if (progressStatus === 1) eventEmitter.emit(eventName);
     const filledLength = Math.floor(progressStatus * length);
     const emptyLength = length - filledLength;
     const beginning = '[';
     const filledPart = '█'.repeat(filledLength);
     const emptyPart = ' '.repeat(emptyLength);
     const ending = `] ${(100 * progressStatus).toFixed(0)}%`;
-    const conditionalNewLine = progressStatus === 1 ? '\n' : '';
-    return `${beginning}${color}${filledPart}${reset}${emptyPart}${ending}${conditionalNewLine}`;
+    const conditionalDone = progressStatus === 1 ? '\nDone!\n' : '';
+    return `${beginning}${color}${filledPart}${reset}${emptyPart}${ending}${conditionalDone}`;
   };
 
   const hexToAnsi = (hex) => {
@@ -71,6 +77,30 @@ const progress = () => {
   const length = isNaN(lengthRaw) || lengthRaw < 0 ? DEFAULT_LENGTH : lengthRaw;
   const colorRaw = args.color ?? DEFAULT_COLOR;
   const color = hexToAnsi(colorRaw);
+
+  const startTime = Date.now();
+
+  const eventEmitter = new EventEmitter();
+
+  const intervalId = setInterval(() => {
+    process.stdout.clearLine();
+    process.stdout.cursorTo(0);
+    process.stdout.write(
+      constructProgressBarParts(
+        startTime,
+        duration,
+        length,
+        color,
+        COLOR_RESET,
+        eventEmitter,
+        PROGRESS_DONE,
+      ),
+    );
+  }, interval);
+
+  eventEmitter.once(PROGRESS_DONE, () => {
+    clearInterval(intervalId);
+  });
 };
 
 progress();
