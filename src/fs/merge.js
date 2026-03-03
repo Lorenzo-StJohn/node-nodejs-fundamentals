@@ -59,6 +59,31 @@ const merge = async () => {
     );
     return;
   }
+
+  const getNamedArgs = (argName) => {
+    const args = process.argv;
+    let isArgProvided = false;
+    const argArray = [];
+    let currentFlag = null;
+
+    for (const arg of args) {
+      if (arg.startsWith('-')) {
+        if (arg.startsWith('--')) {
+          currentFlag = arg.substring(2);
+          if (currentFlag === argName) {
+            isArgProvided = true;
+          }
+        } else {
+          currentFlag = null;
+        }
+      } else if (currentFlag === argName) {
+        argArray.push(arg);
+      }
+    }
+    return [isArgProvided, argArray];
+  };
+
+  const [isFilesProvided, files] = getNamedArgs('files');
 };
 
 await merge();
