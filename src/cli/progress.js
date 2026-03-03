@@ -5,6 +5,10 @@ const progress = () => {
   // Format: [████████████████████          ] 67%
 
   const COLOR_RESET = '\x1b[0m';
+  const DEFAULT_DURATION = 5000;
+  const DEFAULT_INTERVAL = 100;
+  const DEFAULT_LENGTH = 30;
+  const DEFAULT_COLOR = '';
 
   const constructProgressBarParts = (
     startTime,
@@ -55,6 +59,18 @@ const progress = () => {
     }
     return argObj;
   };
+
+  const args = getArgs();
+  const durationRaw = parseInt(args.duration) ?? DEFAULT_DURATION;
+  const duration =
+    isNaN(durationRaw) || durationRaw < 0 ? DEFAULT_DURATION : durationRaw;
+  const intervalRaw = parseInt(args.interval) ?? DEFAULT_INTERVAL;
+  const interval =
+    isNaN(intervalRaw) || intervalRaw < 1 ? DEFAULT_INTERVAL : intervalRaw;
+  const lengthRaw = parseInt(args.length) ?? DEFAULT_LENGTH;
+  const length = isNaN(lengthRaw) || lengthRaw < 0 ? DEFAULT_LENGTH : lengthRaw;
+  const colorRaw = args.color ?? DEFAULT_COLOR;
+  const color = hexToAnsi(colorRaw);
 };
 
 progress();
