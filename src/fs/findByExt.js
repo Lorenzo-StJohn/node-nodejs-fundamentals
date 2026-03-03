@@ -91,7 +91,9 @@ const findByExt = async () => {
   }
 
   const printArrayAlphabetically = (arr) => {
-    const sortedArray = arr.toSorted();
+    const sortedArray = arr.toSorted((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: 'base' }),
+    );
     sortedArray.forEach((entry) => console.log(entry));
   };
 
