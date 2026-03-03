@@ -1,5 +1,5 @@
 import { parseArgs } from 'util';
-import { glob, access, stat } from 'fs/promises';
+import { access, stat, readdir } from 'fs/promises';
 import { join, dirname, relative, extname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -69,22 +69,32 @@ const findByExt = async () => {
   if (ext[0] === '.') {
     ext = ext.substring(1);
   }
-  const pathWithRecursion = join(pathToFolder, '**', `*.${ext}`);
 
   const entries = [];
 
-  const getEntries = async (pathToFolder, pathWithRecursion, ext) => {
-    for await (const entry of glob(pathWithRecursion)) {
+  const readRecursively = async (
+    pathToCurrentFolder,
+    pathToFolder,
+    array,
+    ext,
+  ) => {
+    const entries = await readdir(pathToCurrentFolder);
+    for (const entryWithoutFolder of entries) {
+      const entry = join(pathToCurrentFolder, entryWithoutFolder);
       const path = relative(pathToFolder, entry);
       const entryStat = await stat(entry);
-      if (entryStat.isFile() && extname(path) === `.${ext}`) {
-        entries.push(path);
+      if (entryStat.isFile()) {
+        if (extname(entry) === `.${ext}`) {
+          array.push(path);
+        }
+      } else {
+        await readRecursively(entry, pathToFolder, array, ext);
       }
     }
   };
 
   try {
-    await getEntries(pathToFolder, pathWithRecursion, ext);
+    await readRecursively(pathToFolder, pathToFolder, entries, ext);
   } catch (err) {
     console.error(err);
     return;
