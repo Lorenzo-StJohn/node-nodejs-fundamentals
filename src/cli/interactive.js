@@ -11,7 +11,10 @@ const interactive = () => {
     output: process.stdout,
   });
 
-  const onUptime = async () => {};
+  const onUptime = () => {
+    console.log(`Uptime: ${process.uptime().toFixed(2)}s`);
+    void printPrompt();
+  };
   const onCwd = async () => {};
   const onDate = async () => {};
   const onExit = async () => {};
@@ -20,7 +23,7 @@ const interactive = () => {
     const userInput = await rl.question('>');
     switch (userInput) {
       case 'uptime': {
-        void onUptime();
+        onUptime();
         break;
       }
       case 'cwd': {
