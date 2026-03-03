@@ -15,7 +15,12 @@ const interactive = () => {
     console.log(`Uptime: ${process.uptime().toFixed(2)}s`);
     void printPrompt();
   };
-  const onCwd = async () => {};
+
+  const onCwd = () => {
+    console.log(`Current working directory: ${process.cwd()}`);
+    void printPrompt();
+  };
+
   const onDate = async () => {};
   const onExit = async () => {};
 
@@ -27,7 +32,7 @@ const interactive = () => {
         break;
       }
       case 'cwd': {
-        void onCwd();
+        onCwd();
         break;
       }
       case 'date': {
