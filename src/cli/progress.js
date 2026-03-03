@@ -18,7 +18,8 @@ const progress = () => {
     const filledPart = '█'.repeat(filledLength);
     const emptyPart = ' '.repeat(emptyLength);
     const ending = `] ${(100 * progressStatus).toFixed(0)}%`;
-    return `${beginning}${color}${filledPart}${reset}${emptyPart}${ending}`;
+    const conditionalNewLine = progressStatus === 1 ? '\n' : '';
+    return `${beginning}${color}${filledPart}${reset}${emptyPart}${ending}${conditionalNewLine}`;
   };
 };
 
