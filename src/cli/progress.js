@@ -21,6 +21,19 @@ const progress = () => {
     const conditionalNewLine = progressStatus === 1 ? '\n' : '';
     return `${beginning}${color}${filledPart}${reset}${emptyPart}${ending}${conditionalNewLine}`;
   };
+
+  const hexToAnsi = (hex) => {
+    if (hex.length < 7) return '';
+    if (hex[0] !== '#') return '';
+    const rr = parseInt(hex.slice(1, 3), 16);
+    if (isNaN(rr) || rr < 0 || rr > 255) return '';
+    const gg = parseInt(hex.slice(3, 5), 16);
+    if (isNaN(gg) || gg < 0 || gg > 255) return '';
+    const bb = parseInt(hex.slice(5, 7), 16);
+    if (isNaN(bb) || bb < 0 || bb > 255) return '';
+    const prefix = '\x1b[38;2;';
+    return `${prefix}${rr};${gg};${bb}m`;
+  };
 };
 
 progress();
