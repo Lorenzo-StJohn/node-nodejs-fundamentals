@@ -28,7 +28,8 @@ const interactive = () => {
   };
 
   const printPrompt = async () => {
-    const command = await rl.question('>');
+    const commandRAW = await rl.question('>');
+    const command = commandRAW.trim().toLowerCase();
     switch (command) {
       case 'uptime': {
         onUptime();
