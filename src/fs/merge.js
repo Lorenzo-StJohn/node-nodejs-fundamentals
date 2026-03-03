@@ -1,4 +1,4 @@
-import { access, readdir, stat } from 'fs/promises';
+import { access, readdir, stat, readFile, writeFile } from 'fs/promises';
 import { join, dirname, extname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -6,6 +6,7 @@ const merge = async () => {
   // The workspace directory should be either in project folder or in src/fs
 
   const FOLDER_NAME = 'workspace';
+  const FILE_NAME = 'merged.txt';
   const PARTS_FOLDER_NAME = 'parts';
   const pathToThisFile = fileURLToPath(import.meta.url);
   const pathToThisFolder = dirname(pathToThisFile);
@@ -114,6 +115,41 @@ const merge = async () => {
         console.log('No files with .txt extension found.');
       }
       return;
+    }
+  }
+
+  const fileList = isFilesProvided ? files : sortedFileNames;
+  const mergedFile = join(pathToFolder, FILE_NAME);
+
+  const writeFiles = async (
+    inputFileList,
+    outputFile,
+    pathToFolderWithParts,
+  ) => {
+    await writeFile(outputFile, '');
+    for (const file of inputFileList) {
+      let contentBuffer;
+      try {
+        const path = join(pathToFolderWithParts, file);
+        contentBuffer = await readFile(path);
+      } catch (err) {
+        try {
+          const path = join(pathToFolderWithParts, file + '.txt');
+          contentBuffer = await readFile(path);
+        } catch (err) {
+          throw new Error('FS operation failed');
+        }
+      }
+      await writeFile(outputFile, contentBuffer, { flag: 'a' });
+    }
+  };
+
+  try {
+    await writeFiles(fileList, mergedFile, pathToFolderWithParts);
+  } catch (err) {
+    console.error(err);
+    if (err.message === 'FS operation failed') {
+      console.log('Reading files failed.');
     }
   }
 };
