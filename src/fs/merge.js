@@ -1,5 +1,5 @@
-import { access } from 'fs/promises';
-import { join, dirname } from 'path';
+import { access, readdir, stat } from 'fs/promises';
+import { join, dirname, extname } from 'path';
 import { fileURLToPath } from 'url';
 
 const merge = async () => {
@@ -84,6 +84,38 @@ const merge = async () => {
   };
 
   const [isFilesProvided, files] = getNamedArgs('files');
+
+  const getFileList = async (pathToFolder, ext) => {
+    const fileList = [];
+    const entries = await readdir(pathToFolder);
+    for (const entry of entries) {
+      const path = join(pathToFolder, entry);
+      const entryStat = await stat(path);
+      if (entryStat.isFile() && extname(path) === `.${ext}`) {
+        fileList.push(entry);
+      }
+    }
+    return fileList;
+  };
+
+  let sortedFileNames;
+  if (!isFilesProvided) {
+    try {
+      const allFiles = await getFileList(pathToFolderWithParts, 'txt');
+      if (allFiles.length === 0) {
+        throw new Error('FS operation failed');
+      }
+      sortedFileNames = allFiles.toSorted((a, b) =>
+        a.localeCompare(b, undefined, { sensitivity: 'base' }),
+      );
+    } catch (err) {
+      console.error(err);
+      if (err.message === 'FS operation failed') {
+        console.log('No files with .txt extension found.');
+      }
+      return;
+    }
+  }
 };
 
 await merge();
