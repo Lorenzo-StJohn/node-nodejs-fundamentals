@@ -61,7 +61,9 @@ const interactive = () => {
 
   rl.on('close', handleClosing);
 
-  rl.on('SIGINT', handleClosing);
+  rl.on('SIGINT', () => {
+    rl.close();
+  });
 
   void printPrompt();
 };
