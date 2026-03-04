@@ -98,6 +98,23 @@ const verify = async () => {
     console.error(err);
     return;
   }
+
+  const checkEquality = async (hashesFromJson, pathToFolder) => {
+    for (const filename in hashesFromJson) {
+      const path = join(pathToFolder, filename);
+      let actualHash;
+      try {
+        actualHash = await calculateHash(path, 'sha256');
+      } catch (err) {
+        actualHash = '';
+      }
+      console.log(
+        `${filename} — ${hashesFromJson[filename] === actualHash ? 'OK' : 'FAIL'}`,
+      );
+    }
+  };
+
+  await checkEquality(hashesFromJson, pathToFolder);
 };
 
 await verify();
