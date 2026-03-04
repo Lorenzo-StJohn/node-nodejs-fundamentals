@@ -1,15 +1,16 @@
 import { createHash } from 'crypto';
 import { createReadStream } from 'fs';
-import { access } from 'fs/promises';
+import { access, readFile } from 'fs/promises';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const verify = async () => {
   // File checksums.json should be either in project folder or in src/hash
-  // Calculate SHA256 hash using Streams API
-  // Print result: filename — OK/FAIL
+  // Listed in checksums.json files should be in workspace folder
+  // The workspace folder should be either in project folder or in src/hash
 
   const JSON_NAME = 'checksums.json';
+  const FOLDER_NAME = 'workspace';
 
   const pathToThisFile = fileURLToPath(import.meta.url);
   const pathToThisFolder = dirname(pathToThisFile);
@@ -54,6 +55,47 @@ const verify = async () => {
     console.log(
       'P. S. File named checksums.json should be either in project root folder or in src/hash folder.',
     );
+    return;
+  }
+
+  const getFolderPath = async (pathToRoot, pathToThisFolder, folderName) => {
+    let isFolderInRoot;
+    let isFolderInThisFolder;
+    const pathToFolderInRoot = join(pathToRoot, folderName);
+    const pathToFolderInThisFolder = join(pathToThisFolder, folderName);
+    try {
+      await access(pathToFolderInRoot);
+      return pathToFolderInRoot;
+    } catch (err) {
+      isFolderInRoot = false;
+    }
+    try {
+      await access(pathToFolderInThisFolder);
+      return pathToFolderInThisFolder;
+    } catch (err) {
+      isFolderInThisFolder = false;
+    }
+    if (!isFolderInRoot && !isFolderInThisFolder) {
+      return pathToThisFolder;
+    }
+  };
+
+  const pathToFolder = await getFolderPath(
+    pathToRoot,
+    pathToThisFolder,
+    FOLDER_NAME,
+  );
+
+  const readJsonFile = async (pathToJsonFile) => {
+    const data = await readFile(pathToJsonFile, { encoding: 'utf8' });
+    return JSON.parse(data);
+  };
+
+  let hashesFromJson;
+  try {
+    hashesFromJson = await readJsonFile(pathToJsonFile);
+  } catch (err) {
+    console.error(err);
     return;
   }
 };
