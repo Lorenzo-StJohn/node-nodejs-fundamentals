@@ -58,6 +58,19 @@ const dynamic = async () => {
     console.error(err);
     process.exit(1);
   }
+
+  const executeImportedFunctions = (runs) => {
+    for (const run of runs) {
+      if (run && 'run' in run && typeof run.run === 'function') {
+        const result = run.run();
+        console.log(result);
+      } else {
+        console.log('No run function');
+      }
+    }
+  };
+
+  executeImportedFunctions(runs);
 };
 
 await dynamic();
