@@ -14,13 +14,11 @@ const findByExt = async () => {
   };
   let ext;
   try {
-    const { values } = parseArgs({ options });
+    const { values } = parseArgs({ options, strict: false });
     ext = values.ext.trim();
   } catch (err) {
     console.error(err);
-    console.log(
-      'P. S. There are should be either exactly one argument named ext with its value or no arguments at all.',
-    );
+    console.log('P. S. Reading arguments failed.');
     return;
   }
 
