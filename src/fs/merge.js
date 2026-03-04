@@ -84,7 +84,17 @@ const merge = async () => {
     return [isArgProvided, argArray];
   };
 
-  const [isFilesProvided, files] = getNamedArgs('files');
+  const [isFilesProvided, fileArray] = getNamedArgs('files');
+
+  const splitFileString = (fileArray) => {
+    let files = [];
+    for (const file of fileArray) {
+      files.push(...file.split(','));
+    }
+    return files;
+  };
+
+  const files = splitFileString(fileArray);
 
   const getFileList = async (pathToFolder, ext) => {
     const fileList = [];
