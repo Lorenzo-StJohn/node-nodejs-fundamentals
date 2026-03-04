@@ -1,17 +1,9 @@
-import { EventEmitter } from 'events';
-
 const progress = () => {
-  // Write your code here
-  // Simulate progress bar from 0% to 100% over ~5 seconds
-  // Update in place using \r every 100ms
-  // Format: [████████████████████          ] 67%
-
   const COLOR_RESET = '\x1b[0m';
   const DEFAULT_DURATION = 5000;
   const DEFAULT_INTERVAL = 100;
   const DEFAULT_LENGTH = 30;
   const DEFAULT_COLOR = '';
-  const PROGRESS_DONE = 'progress-done';
 
   const constructProgressBarParts = (
     startTime,
@@ -19,11 +11,10 @@ const progress = () => {
     length,
     color,
     reset,
-    eventEmitter,
-    eventName,
+    intervalId,
   ) => {
     const progressStatus = Math.min((Date.now() - startTime) / duration, 1);
-    if (progressStatus === 1) eventEmitter.emit(eventName);
+    if (progressStatus === 1) clearInterval(intervalId);
     const filledLength = Math.floor(progressStatus * length);
     const emptyLength = length - filledLength;
     const beginning = '[';
@@ -80,8 +71,6 @@ const progress = () => {
 
   const startTime = Date.now();
 
-  const eventEmitter = new EventEmitter();
-
   const intervalId = setInterval(() => {
     process.stdout.clearLine();
     process.stdout.cursorTo(0);
@@ -92,15 +81,10 @@ const progress = () => {
         length,
         color,
         COLOR_RESET,
-        eventEmitter,
-        PROGRESS_DONE,
+        intervalId,
       ),
     );
   }, interval);
-
-  eventEmitter.once(PROGRESS_DONE, () => {
-    clearInterval(intervalId);
-  });
 };
 
 progress();
