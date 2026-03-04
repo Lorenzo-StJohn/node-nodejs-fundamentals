@@ -32,37 +32,41 @@ const dynamic = async () => {
   const pathToPluginsFolder = join(pathToThisFolder, 'plugins');
 
   const importRunFunctions = async (plugins) => {
-    const runs = [];
+    const importedObjs = [];
     for (const plugin of plugins) {
       try {
         const path = join(pathToPluginsFolder, plugin);
-        const run = await import(path);
-        runs.push(run);
+        const importedObj = await import(path);
+        importedObjs.push(importedObj);
       } catch (err) {
         try {
           const path = join(pathToPluginsFolder, plugin + '.js');
-          const run = await import(path);
-          runs.push(run);
+          const importedObj = await import(path);
+          importedObjs.push(importedObj);
         } catch (err) {
           throw new Error('Plugin not found');
         }
       }
     }
-    return runs;
+    return importedObjs;
   };
 
-  let runs;
+  let importedObjs;
   try {
-    runs = await importRunFunctions(plugins);
+    importedObjs = await importRunFunctions(plugins);
   } catch (err) {
     console.error(err);
     process.exit(1);
   }
 
-  const executeImportedFunctions = (runs) => {
-    for (const run of runs) {
-      if (run && 'run' in run && typeof run.run === 'function') {
-        const result = run.run();
+  const executeImportedFunctions = (importedObjs) => {
+    for (const importedObj of importedObjs) {
+      if (
+        importedObj &&
+        'run' in importedObj &&
+        typeof importedObj.run === 'function'
+      ) {
+        const result = importedObj.run();
         console.log(result);
       } else {
         console.log('No run function');
@@ -70,7 +74,7 @@ const dynamic = async () => {
     }
   };
 
-  executeImportedFunctions(runs);
+  executeImportedFunctions(importedObjs);
 };
 
 await dynamic();
