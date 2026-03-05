@@ -1,8 +1,10 @@
+import { parseArgs } from 'util';
+
 const progress = () => {
   const COLOR_RESET = '\x1b[0m';
-  const DEFAULT_DURATION = 5000;
-  const DEFAULT_INTERVAL = 100;
-  const DEFAULT_LENGTH = 30;
+  const DEFAULT_DURATION = '5000';
+  const DEFAULT_INTERVAL = '100';
+  const DEFAULT_LENGTH = '30';
   const DEFAULT_COLOR = '';
 
   const constructProgressBarParts = (
@@ -38,36 +40,43 @@ const progress = () => {
     return `${prefix}${rr};${gg};${bb}m`;
   };
 
-  const getArgs = () => {
-    const args = process.argv;
-    const argObj = {};
-    let currentFlag = null;
-
-    for (const arg of args) {
-      if (arg.startsWith('-')) {
-        if (arg.startsWith('--')) {
-          currentFlag = arg.substring(2);
-        } else {
-          currentFlag = null;
-        }
-      } else if (currentFlag) {
-        argObj[currentFlag] = arg;
-      }
-    }
-    return argObj;
+  const options = {
+    duration: {
+      type: 'string',
+      default: DEFAULT_DURATION,
+    },
+    interval: {
+      type: 'string',
+      default: DEFAULT_INTERVAL,
+    },
+    length: {
+      type: 'string',
+      default: DEFAULT_LENGTH,
+    },
+    color: {
+      type: 'string',
+      default: DEFAULT_COLOR,
+    },
   };
-
-  const args = getArgs();
-  const durationRaw = parseInt(args.duration) ?? DEFAULT_DURATION;
-  const duration =
-    isNaN(durationRaw) || durationRaw < 0 ? DEFAULT_DURATION : durationRaw;
-  const intervalRaw = parseInt(args.interval) ?? DEFAULT_INTERVAL;
-  const interval =
-    isNaN(intervalRaw) || intervalRaw < 1 ? DEFAULT_INTERVAL : intervalRaw;
-  const lengthRaw = parseInt(args.length) ?? DEFAULT_LENGTH;
-  const length = isNaN(lengthRaw) || lengthRaw < 0 ? DEFAULT_LENGTH : lengthRaw;
-  const colorRaw = args.color ?? DEFAULT_COLOR;
-  const color = hexToAnsi(colorRaw);
+  let durationResolved, intervalResolved, lengthResolved, colorResolved;
+  try {
+    const { values } = parseArgs({ options, strict: false });
+    const { duration, interval, length, color } = values;
+    const durationInt = parseInt(duration);
+    durationResolved =
+      isNaN(durationInt) || durationInt < 0 ? +DEFAULT_DURATION : durationInt;
+    const intervalInt = parseInt(interval);
+    intervalResolved =
+      isNaN(intervalInt) || intervalInt < 1 ? +DEFAULT_INTERVAL : intervalInt;
+    const lengthInt = parseInt(length);
+    lengthResolved =
+      isNaN(lengthInt) || lengthInt < 0 ? +DEFAULT_LENGTH : lengthInt;
+    colorResolved = hexToAnsi(color);
+  } catch (err) {
+    console.error(err);
+    console.log('P. S. Reading arguments failed.');
+    return;
+  }
 
   const startTime = Date.now();
 
@@ -77,14 +86,14 @@ const progress = () => {
     process.stdout.write(
       constructProgressBarParts(
         startTime,
-        duration,
-        length,
-        color,
+        durationResolved,
+        lengthResolved,
+        colorResolved,
         COLOR_RESET,
         intervalId,
       ),
     );
-  }, interval);
+  }, intervalResolved);
 };
 
 progress();
