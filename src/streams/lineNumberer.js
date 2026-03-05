@@ -2,11 +2,6 @@ import { Transform } from 'stream';
 import { pipeline } from 'stream/promises';
 
 const lineNumberer = () => {
-  // Write your code here
-  // Read from process.stdin
-  // Use Transform Stream to prepend line numbers
-  // Write to process.stdout
-
   const lineNumberTransform = new Transform({
     transform(chunk, encoding, callback) {
       const END_LINE = /(\r?\n)/;
