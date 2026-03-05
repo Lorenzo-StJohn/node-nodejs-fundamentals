@@ -12,7 +12,11 @@ const lineNumberer = () => {
       const END_LINE = /(\r?\n)/;
       const inputString = chunk.toString('utf8');
       const inputLines = inputString.split(END_LINE);
-      if (inputLines.length > 2 && inputLines.at(-2).match(END_LINE)) {
+      if (
+        inputLines.length > 2 &&
+        inputLines.at(-2).match(END_LINE) &&
+        inputLines.at(-1) === ''
+      ) {
         inputLines.pop();
         inputLines.pop();
       }
