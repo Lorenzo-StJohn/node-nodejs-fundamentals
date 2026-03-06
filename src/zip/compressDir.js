@@ -102,7 +102,12 @@ const compressDir = async () => {
     }
   };
 
-  await readRecursively(pathToFolder, pathToFolder);
+  try {
+    await readRecursively(pathToFolder, pathToFolder);
+  } catch (err) {
+    console.error(err);
+    return;
+  }
 };
 
 await compressDir();
