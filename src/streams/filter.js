@@ -4,6 +4,7 @@ import { parseArgs } from 'util';
 
 const filter = () => {
   // pattern should be valid regex, in any other case will be used default pattern /.*/
+  // starting and finishing slashes will be add automatically, don't end them to your pattern
 
   const options = {
     pattern: {
@@ -15,8 +16,9 @@ const filter = () => {
   try {
     const { values } = parseArgs({ options, strict: false });
     const patternRaw = values.pattern;
-    const patternStr = typeof patternRaw === 'string' ? patternRaw : '/.*/';
-    const match = patternStr.match(/^\/(.*)\/([dgimsuvy]*)$/i);
+    const patternStr = typeof patternRaw === 'string' ? patternRaw : '.*';
+    const patternStrWithSlashes = `/${patternStr}/`;
+    const match = patternStrWithSlashes.match(/^\/(.*)\/([dgimsuvy]*)$/i);
     if (match) {
       const [, source, flags] = match;
       pattern = new RegExp(source, flags);
