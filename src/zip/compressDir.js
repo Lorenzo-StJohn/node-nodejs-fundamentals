@@ -95,6 +95,7 @@ const compressDir = async () => {
       path: path,
       type: entryType,
     };
+    if (entryType === 'file') entryObj.fileSize = entryStat.size;
     return JSON.stringify(entryObj);
   };
 
