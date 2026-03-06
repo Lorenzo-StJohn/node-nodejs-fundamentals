@@ -1,7 +1,7 @@
-import { stat, access } from 'fs/promises';
+import { stat, access, readFile, readdir } from 'fs/promises';
 import { Transform } from 'stream';
-import { createBrotliCompress } from 'zlib';
-import { join, dirname } from 'path';
+import { createBrotliCompress, constants } from 'zlib';
+import { join, dirname, relative } from 'path';
 import { fileURLToPath } from 'url';
 
 const compressDir = async () => {
@@ -60,7 +60,7 @@ const compressDir = async () => {
 
   const compressor = createBrotliCompress({
     params: {
-      [zlib.constants.BROTLI_PARAM_QUALITY]: COMPRESS_LEVEL,
+      [constants.BROTLI_PARAM_QUALITY]: COMPRESS_LEVEL,
     },
   });
 
@@ -72,15 +72,37 @@ const compressDir = async () => {
     });
   };
 
-  const createMetadata = async (entry) => {
+  const createMetadata = async (entry, pathToFolder) => {
     const entryStat = await stat(entry);
-    const entryType = entryStat.isFile ? 'file' : 'directory';
+    const entryType = entryStat.isFile() ? 'file' : 'directory';
+    const path = relative(pathToFolder, entry);
     const entryObj = {
-      path: entry,
+      path: path,
       type: entryType,
     };
     return JSON.stringify(entryObj);
   };
+
+  const handleFile = async (metadataJson, entry) => {};
+
+  const handleFolder = async (metadataJson) => {};
+
+  const readRecursively = async (pathToCurrentFolder, pathToFolder) => {
+    const entries = await readdir(pathToCurrentFolder);
+    for (const entryWithoutFolder of entries) {
+      const entry = join(pathToCurrentFolder, entryWithoutFolder);
+      const metadataJson = await createMetadata(entry, pathToFolder);
+      const metadataObj = JSON.parse(metadataJson);
+      if (metadataObj.type === 'file') {
+        await handleFile(metadataJson, entry);
+      } else {
+        await handleFolder(metadataJson);
+        await readRecursively(entry, pathToFolder);
+      }
+    }
+  };
+
+  await readRecursively(pathToFolder, pathToFolder);
 };
 
 await compressDir();
