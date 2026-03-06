@@ -183,8 +183,8 @@ const compressDir = async () => {
           entry,
           compressorParams,
           pathToOutputFile,
-          START_METADATA,
-          END_METADATA,
+          START_CONTENT,
+          END_CONTENT,
         );
       } else {
         await readRecursively(
