@@ -1,9 +1,9 @@
 import { parseArgs } from 'util';
-import { access } from 'fs/promises';
+import { access, mkdir, rm } from 'fs/promises';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { createReadStream, createWriteStream } from 'fs';
-import { Transform } from 'stream';
+import { Transform, Writable } from 'stream';
 import { pipeline } from 'stream/promises';
 
 const split = async () => {
@@ -12,6 +12,7 @@ const split = async () => {
   const DEFAULT_LINES = '10';
   const INPUT_FILE_NAME = 'source.txt';
   const OUTPUT_FILE_NAME = 'chunk_';
+  const OUTPUT_FOLDER_NAME = 'chunks';
 
   const pathToThisFile = fileURLToPath(import.meta.url);
   const pathToThisFolder = dirname(pathToThisFile);
@@ -73,9 +74,7 @@ const split = async () => {
     return;
   }
 
-  const path = join(pathToThisFolder, `${OUTPUT_FILE_NAME}1.txt`);
   const readStream = createReadStream(pathToSourceFile);
-  const writeStream = createWriteStream(path);
 
   const transformToOneLine = new Transform({
     transform(chunk, encoding, callback) {
@@ -97,6 +96,46 @@ const split = async () => {
     },
   });
 
+  class ConditionalFileWriter extends Writable {
+    constructor(outputNameStarter, path, lines, ...options) {
+      super(...options);
+      this.streams = [];
+      this.counter = 0;
+      this.outputNameStarter = outputNameStarter;
+      this.path = path;
+      this.lines = lines;
+    }
+
+    _write(chunk, encoding, callback) {
+      ++this.counter;
+      const fileNumber = Math.ceil(this.counter / this.lines);
+      const file = join(
+        this.path,
+        `${this.outputNameStarter}${fileNumber}.txt`,
+      );
+
+      if (this.streams.length < fileNumber) {
+        this.streams.push(createWriteStream(file, { flags: 'a' }));
+      }
+
+      this.streams[fileNumber - 1].write(chunk, encoding, callback);
+    }
+
+    _destroy(err, callback) {
+      for (const stream of this.streams) {
+        stream.end();
+      }
+      callback(err);
+    }
+  }
+
+  const pathToOutputFolder = join(pathToThisFolder, OUTPUT_FOLDER_NAME);
+  const customWritableStream = new ConditionalFileWriter(
+    OUTPUT_FILE_NAME,
+    pathToOutputFolder,
+    lines,
+  );
+
   const handlePipeline = async (...items) => {
     try {
       await pipeline(...items);
@@ -105,7 +144,24 @@ const split = async () => {
       return;
     }
   };
-  void handlePipeline(readStream, transformToOneLine, writeStream);
+
+  const createFolder = async (pathToFolder) => {
+    try {
+      await rm(pathToFolder, { force: true, recursive: true });
+      await mkdir(pathToFolder, { recursive: true });
+    } catch (err) {
+      throw new Error('Attempt to create/recreate chunks folder failed');
+    }
+  };
+
+  try {
+    await createFolder(pathToOutputFolder);
+  } catch (err) {
+    console.error(err);
+    return;
+  }
+
+  await handlePipeline(readStream, transformToOneLine, customWritableStream);
 };
 
 await split();
