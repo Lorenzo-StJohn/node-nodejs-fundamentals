@@ -82,7 +82,6 @@ const compressDir = async () => {
   }
 
   const pathToOutputFile = join(pathToOutputFolder, OUTPUT_FILE_PATHS.at(-1));
-  const writeStream = createWriteStream(pathToOutputFile);
 
   const compressorParams = {
     [constants.BROTLI_PARAM_QUALITY]: COMPRESS_LEVEL,
@@ -108,14 +107,6 @@ const compressDir = async () => {
   ) => {
     await pipeline(
       Readable.from(START_CONTENT),
-      createBrotliCompress({
-        params: compressorParams,
-      }),
-      new Transform({
-        transform(chunk, encoding, callback) {
-          callback(null, chunk.toString('base64'));
-        },
-      }),
       createWriteStream(pathToOutputFile, { flags: 'a' }),
     );
     await pipeline(
@@ -132,14 +123,6 @@ const compressDir = async () => {
     );
     await pipeline(
       Readable.from(END_CONTENT),
-      createBrotliCompress({
-        params: compressorParams,
-      }),
-      new Transform({
-        transform(chunk, encoding, callback) {
-          callback(null, chunk.toString('base64'));
-        },
-      }),
       createWriteStream(pathToOutputFile, { flags: 'a' }),
     );
   };
@@ -153,14 +136,6 @@ const compressDir = async () => {
   ) => {
     await pipeline(
       Readable.from(START_METADATA),
-      createBrotliCompress({
-        params: compressorParams,
-      }),
-      new Transform({
-        transform(chunk, encoding, callback) {
-          callback(null, chunk.toString('base64'));
-        },
-      }),
       createWriteStream(pathToOutputFile, { flags: 'a' }),
     );
     await pipeline(
@@ -177,14 +152,6 @@ const compressDir = async () => {
     );
     await pipeline(
       Readable.from(END_METADATA),
-      createBrotliCompress({
-        params: compressorParams,
-      }),
-      new Transform({
-        transform(chunk, encoding, callback) {
-          callback(null, chunk.toString('base64'));
-        },
-      }),
       createWriteStream(pathToOutputFile, { flags: 'a' }),
     );
   };
