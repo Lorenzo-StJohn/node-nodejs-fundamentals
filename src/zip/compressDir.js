@@ -1,4 +1,4 @@
-import { stat } from 'fs/promises';
+import { stat, access } from 'fs/promises';
 import { Transform } from 'stream';
 import { createBrotliCompress } from 'zlib';
 import { join, dirname } from 'path';
