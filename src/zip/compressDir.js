@@ -1,5 +1,5 @@
 import { stat, access, readdir, rm, mkdir } from 'fs/promises';
-import { Readable, Transform } from 'stream';
+import { PassThrough } from 'stream';
 import { createBrotliCompress, constants } from 'zlib';
 import { join, dirname, relative } from 'path';
 import { fileURLToPath } from 'url';
@@ -84,6 +84,8 @@ const compressDir = async () => {
     [constants.BROTLI_PARAM_QUALITY]: COMPRESS_LEVEL,
   };
 
+  const compress = createBrotliCompress({ params: compressorParams });
+
   const createMetadata = async (entry, pathToFolder) => {
     const entryStat = await stat(entry);
     const entryType = entryStat.isFile() ? 'file' : 'directory';
@@ -102,45 +104,51 @@ const compressDir = async () => {
     return buffer;
   };
 
-  function createBufferWithMetadata(metadata) {
+  const createBufferWithMetadata = (metadata) => {
     return Buffer.from(metadata, 'utf8');
-  }
+  };
 
-  const readRecursively = async (
-    pathToCurrentFolder,
-    pathToFolder,
-    compressorParams,
-    pathToOutputFile,
-  ) => {
+  const globalStream = new PassThrough();
+
+  const pipelinePromise = pipeline(
+    globalStream,
+    createBrotliCompress({ params: compressorParams }),
+    createWriteStream(pathToOutputFile),
+  ).catch((err) => {
+    console.error(err);
+  });
+
+  const readRecursively = async (pathToCurrentFolder, pathToFolder) => {
     const entries = await readdir(pathToCurrentFolder);
     for (const entryWithoutFolder of entries) {
       const entry = join(pathToCurrentFolder, entryWithoutFolder);
       const metadataJson = await createMetadata(entry, pathToFolder);
       const metadataSize = Buffer.byteLength(metadataJson, 'utf8');
       const metadataObj = JSON.parse(metadataJson);
+      const bufferWithMetadataSize = createBufferWithMetadataSize(metadataSize);
+      globalStream.write(bufferWithMetadataSize);
+      const bufferWithMetadata = createBufferWithMetadata(metadataJson);
+      globalStream.write(bufferWithMetadata);
       if (metadataObj.type === 'file') {
+        const readStream = createReadStream(entry);
+        for await (const chunk of readStream) {
+          globalStream.write(chunk);
+        }
       } else {
-        await readRecursively(
-          entry,
-          pathToFolder,
-          compressorParams,
-          pathToOutputFile,
-        );
+        await readRecursively(entry, pathToFolder);
       }
     }
   };
 
   try {
-    await readRecursively(
-      pathToFolder,
-      pathToFolder,
-      compressorParams,
-      pathToOutputFile,
-    );
+    await readRecursively(pathToFolder, pathToFolder);
   } catch (err) {
     console.error(err);
-    return;
+  } finally {
+    globalStream.end();
   }
+
+  await pipelinePromise;
 };
 
 await compressDir();
