@@ -8,6 +8,7 @@ import { pipeline } from 'stream/promises';
 
 const split = async () => {
   // File source.txt should be either in project folder or in src/streams
+  // Chunk files will be created in chunks folder in src/streams
 
   const DEFAULT_LINES = '10';
   const INPUT_FILE_NAME = 'source.txt';
