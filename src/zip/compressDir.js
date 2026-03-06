@@ -5,6 +5,7 @@ import { join, dirname, relative } from 'path';
 import { fileURLToPath } from 'url';
 import { createWriteStream, createReadStream } from 'fs';
 import { pipeline } from 'stream/promises';
+import { Buffer } from 'buffer';
 
 const compressDir = async () => {
   // Folder workspace should be either in project root folder or in src/zip
@@ -171,6 +172,7 @@ const compressDir = async () => {
     for (const entryWithoutFolder of entries) {
       const entry = join(pathToCurrentFolder, entryWithoutFolder);
       const metadataJson = await createMetadata(entry, pathToFolder);
+      const metadataSize = Buffer.byteLength(metadataJson, 'utf8');
       const metadataObj = JSON.parse(metadataJson);
       await handleMetadata(
         metadataJson,
