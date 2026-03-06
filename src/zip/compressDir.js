@@ -1,4 +1,5 @@
 import { stat } from 'fs/promises';
+import { Transform } from 'stream';
 
 const compressDir = async () => {
   // Write your code here
@@ -6,6 +7,12 @@ const compressDir = async () => {
   // Compress entire directory structure into archive.br
   // Save to workspace/compressed/
   // Use Streams API
+
+  const stringTransform = new Transform({
+    transform(chunk, encoding, callback) {
+      callback(null, chunk.toString('base64'));
+    },
+  });
 
   const createMetadata = async (entry) => {
     const entryStat = await stat(entry);
@@ -15,10 +22,6 @@ const compressDir = async () => {
       type: entryType,
     };
     return JSON.stringify(entryObj);
-  };
-
-  const convertToBase64 = (entry) => {
-    return entry.toString('base64');
   };
 };
 
