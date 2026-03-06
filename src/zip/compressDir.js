@@ -16,6 +16,10 @@ const compressDir = async () => {
     };
     return JSON.stringify(entryObj);
   };
+
+  const convertToBase64 = (entry) => {
+    return entry.toString('base64');
+  };
 };
 
 await compressDir();
