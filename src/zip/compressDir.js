@@ -118,6 +118,8 @@ const compressDir = async () => {
     console.error(err);
   });
 
+  let isSuccess;
+
   const readRecursively = async (pathToCurrentFolder, pathToFolder) => {
     const entries = await readdir(pathToCurrentFolder);
     for (const entryWithoutFolder of entries) {
@@ -126,13 +128,22 @@ const compressDir = async () => {
       const metadataSize = Buffer.byteLength(metadataJson, 'utf8');
       const metadataObj = JSON.parse(metadataJson);
       const bufferWithMetadataSize = createBufferWithMetadataSize(metadataSize);
-      globalStream.write(bufferWithMetadataSize);
+      isSuccess = globalStream.write(bufferWithMetadataSize);
+      if (!isSuccess) {
+        await new Promise((resolve) => writable.once('drain', resolve));
+      }
       const bufferWithMetadata = createBufferWithMetadata(metadataJson);
-      globalStream.write(bufferWithMetadata);
+      isSuccess = globalStream.write(bufferWithMetadata);
+      if (!isSuccess) {
+        await new Promise((resolve) => writable.once('drain', resolve));
+      }
       if (metadataObj.type === 'file') {
         const readStream = createReadStream(entry);
         for await (const chunk of readStream) {
-          globalStream.write(chunk);
+          isSuccess = globalStream.write(chunk);
+          if (!isSuccess) {
+            await new Promise((resolve) => writable.once('drain', resolve));
+          }
         }
       } else {
         await readRecursively(entry, pathToFolder);
@@ -142,13 +153,12 @@ const compressDir = async () => {
 
   try {
     await readRecursively(pathToFolder, pathToFolder);
-  } catch (err) {
-    console.error(err);
-  } finally {
     globalStream.end();
+    await pipelinePromise;
+  } catch (err) {
+    globalStream.destroy(err);
+    console.error(err);
   }
-
-  await pipelinePromise;
 };
 
 await compressDir();
