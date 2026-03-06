@@ -1,4 +1,4 @@
-import { stat, access, readFile, readdir } from 'fs/promises';
+import { stat, access, readdir, rm, mkdir } from 'fs/promises';
 import { Transform } from 'stream';
 import { createBrotliCompress, constants } from 'zlib';
 import { join, dirname, relative } from 'path';
@@ -10,6 +10,7 @@ const compressDir = async () => {
 
   const COMPRESS_LEVEL = 4;
   const FOLDER_PATHS = ['workspace', 'toCompress'];
+  const OUTPUT_FILE_PATHS = ['compressed', 'archive.br'];
 
   const pathToThisFile = fileURLToPath(import.meta.url);
   const pathToThisFolder = dirname(pathToThisFile);
@@ -49,6 +50,28 @@ const compressDir = async () => {
     console.log(
       'P. S. Folder named workspace with folder named toCompress should be either in project root folder or in src/zip.',
     );
+    return;
+  }
+
+  const pathToOutputFolder = join(
+    pathToFolder,
+    '..',
+    ...OUTPUT_FILE_PATHS.slice(0, -1),
+  );
+
+  const createFolder = async (path) => {
+    try {
+      await rm(path, { force: true, recursive: true });
+      await mkdir(path, { recursive: true });
+    } catch (err) {
+      throw new Error('Attempt to create/recreate compressed folder failed');
+    }
+  };
+
+  try {
+    await createFolder(pathToOutputFolder);
+  } catch (err) {
+    console.error(err);
     return;
   }
 
