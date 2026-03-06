@@ -1,10 +1,10 @@
 import { stat, access, readdir, rm, mkdir } from 'fs/promises';
-import { Transform } from 'stream';
-import { createBrotliCompress, constants, brotliCompress } from 'zlib';
+import { Readable, Transform } from 'stream';
+import { createBrotliCompress, constants } from 'zlib';
 import { join, dirname, relative } from 'path';
 import { fileURLToPath } from 'url';
-import { createWriteStream } from 'fs';
-import { promisify } from 'util';
+import { createWriteStream, createReadStream } from 'fs';
+import { pipeline } from 'stream/promises';
 
 const compressDir = async () => {
   // Folder workspace should be either in project root folder or in src/zip
@@ -15,6 +15,8 @@ const compressDir = async () => {
   const OUTPUT_FILE_PATHS = ['compressed', 'archive.br'];
   const START_METADATA = '?';
   const END_METADATA = '!';
+  const START_CONTENT = '_';
+  const END_CONTENT = '#';
 
   const pathToThisFile = fileURLToPath(import.meta.url);
   const pathToThisFolder = dirname(pathToThisFile);
@@ -82,21 +84,9 @@ const compressDir = async () => {
   const pathToOutputFile = join(pathToOutputFolder, OUTPUT_FILE_PATHS.at(-1));
   const writeStream = createWriteStream(pathToOutputFile);
 
-  const stringTransform = new Transform({
-    transform(chunk, encoding, callback) {
-      callback(null, chunk.toString('base64'));
-    },
-  });
-
   const compressorParams = {
     [constants.BROTLI_PARAM_QUALITY]: COMPRESS_LEVEL,
   };
-
-  const compressStream = createBrotliCompress({
-    params: compressorParams,
-  });
-
-  const compress = promisify(brotliCompress);
 
   const createMetadata = async (entry, pathToFolder) => {
     const entryStat = await stat(entry);
@@ -109,72 +99,136 @@ const compressDir = async () => {
     return JSON.stringify(entryObj);
   };
 
-  const handleFile = async (
-    metadataJson,
+  const handleContent = async (
     entry,
-    writeStream,
-    compress,
-    compressStream,
-    stringTransform,
+    compressorParams,
+    pathToOutputFile,
+    START_CONTENT,
+    END_CONTENT,
   ) => {
-    await writeStream.write(START_METADATA);
-    const metadataCompressed = await compress(metadataJson);
-    const metadataStr = metadataCompressed.toString('base64');
-    await writeStream.write(metadataStr);
-    await writeStream.write(END_METADATA);
+    await pipeline(
+      Readable.from(START_CONTENT),
+      createBrotliCompress({
+        params: compressorParams,
+      }),
+      new Transform({
+        transform(chunk, encoding, callback) {
+          callback(null, chunk.toString('base64'));
+        },
+      }),
+      createWriteStream(pathToOutputFile, { flags: 'a' }),
+    );
+    await pipeline(
+      createReadStream(entry),
+      createBrotliCompress({
+        params: compressorParams,
+      }),
+      new Transform({
+        transform(chunk, encoding, callback) {
+          callback(null, chunk.toString('base64'));
+        },
+      }),
+      createWriteStream(pathToOutputFile, { flags: 'a' }),
+    );
+    await pipeline(
+      Readable.from(END_CONTENT),
+      createBrotliCompress({
+        params: compressorParams,
+      }),
+      new Transform({
+        transform(chunk, encoding, callback) {
+          callback(null, chunk.toString('base64'));
+        },
+      }),
+      createWriteStream(pathToOutputFile, { flags: 'a' }),
+    );
   };
 
-  const handleFolder = async (
+  const handleMetadata = async (
     metadataJson,
-    writeStream,
-    compress,
-    compressStream,
-    stringTransform,
+    compressorParams,
+    pathToOutputFile,
+    START_METADATA,
+    END_METADATA,
   ) => {
-    await writeStream.write(START_METADATA);
-    const metadataCompressed = await compress(metadataJson);
-    const metadataStr = metadataCompressed.toString('base64');
-    await writeStream.write(metadataStr);
-    await writeStream.write(END_METADATA);
+    await pipeline(
+      Readable.from(START_METADATA),
+      createBrotliCompress({
+        params: compressorParams,
+      }),
+      new Transform({
+        transform(chunk, encoding, callback) {
+          callback(null, chunk.toString('base64'));
+        },
+      }),
+      createWriteStream(pathToOutputFile, { flags: 'a' }),
+    );
+    await pipeline(
+      Readable.from(metadataJson),
+      createBrotliCompress({
+        params: compressorParams,
+      }),
+      new Transform({
+        transform(chunk, encoding, callback) {
+          callback(null, chunk.toString('base64'));
+        },
+      }),
+      createWriteStream(pathToOutputFile, { flags: 'a' }),
+    );
+    await pipeline(
+      Readable.from(END_METADATA),
+      createBrotliCompress({
+        params: compressorParams,
+      }),
+      new Transform({
+        transform(chunk, encoding, callback) {
+          callback(null, chunk.toString('base64'));
+        },
+      }),
+      createWriteStream(pathToOutputFile, { flags: 'a' }),
+    );
   };
 
   const readRecursively = async (
     pathToCurrentFolder,
     pathToFolder,
-    writeStream,
-    compress,
-    compressStream,
-    stringTransform,
+    compressorParams,
+    pathToOutputFile,
+    START_METADATA,
+    END_METADATA,
+    START_CONTENT,
+    END_CONTENT,
   ) => {
     const entries = await readdir(pathToCurrentFolder);
     for (const entryWithoutFolder of entries) {
       const entry = join(pathToCurrentFolder, entryWithoutFolder);
       const metadataJson = await createMetadata(entry, pathToFolder);
       const metadataObj = JSON.parse(metadataJson);
+      await handleMetadata(
+        metadataJson,
+        compressorParams,
+        pathToOutputFile,
+        START_METADATA,
+        END_METADATA,
+      );
       if (metadataObj.type === 'file') {
-        await handleFile(
-          metadataJson,
+        await handleContent(
           entry,
-          writeStream,
-          compress,
-          compressStream,
-          stringTransform,
+          compressorParams,
+          pathToOutputFile,
+          START_METADATA,
+          END_METADATA,
         );
       } else {
-        await handleFolder(
-          metadataJson,
-          writeStream,
-          compress,
-          compressStream,
-          stringTransform,
-        );
         await readRecursively(
           entry,
           pathToFolder,
-          writeStream,
-          compress,
-          compressStream,
-          stringTransform,
+          compressorParams,
+          pathToOutputFile,
+          START_METADATA,
+          END_METADATA,
+          START_CONTENT,
+          END_CONTENT,
         );
       }
     }
@@ -184,10 +238,12 @@ const compressDir = async () => {
     await readRecursively(
       pathToFolder,
       pathToFolder,
-      writeStream,
-      compress,
-      compressStream,
-      stringTransform,
+      compressorParams,
+      pathToOutputFile,
+      START_METADATA,
+      END_METADATA,
+      START_CONTENT,
+      END_CONTENT,
     );
   } catch (err) {
     console.error(err);
