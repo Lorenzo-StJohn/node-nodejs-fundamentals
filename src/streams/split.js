@@ -76,25 +76,32 @@ const split = async () => {
 
   const readStream = createReadStream(pathToSourceFile);
 
-  const transformToOneLine = new Transform({
-    transform(chunk, encoding, callback) {
-      const END_LINE = /\r?\n/;
-      const inputString = chunk.toString('utf8');
-      this.accumulatedString ??= '';
-      this.accumulatedString += inputString;
-      const stringSplitted = this.accumulatedString.split(END_LINE);
-      this.accumulatedString = stringSplitted.pop();
-      for (let i = 0; i < stringSplitted.length; ++i) {
-        this.push(stringSplitted[i] + '\n');
-      }
-      callback();
-    },
+  const createTransformToOneLine = (lines) =>
+    new Transform({
+      transform(chunk, encoding, callback) {
+        this.counter ??= 0;
+        const END_LINE = /\r?\n/;
+        const inputString = chunk.toString('utf8');
+        this.accumulatedString ??= '';
+        this.accumulatedString += inputString;
+        const stringSplitted = this.accumulatedString.split(END_LINE);
+        this.accumulatedString = stringSplitted.pop();
+        for (let i = 0; i < stringSplitted.length; ++i) {
+          this.counter++;
+          if (this.counter % lines === 0) {
+            this.push(stringSplitted[i]);
+          } else {
+            this.push(stringSplitted[i] + '\n');
+          }
+        }
+        callback();
+      },
 
-    flush(callback) {
-      this.push(this.accumulatedString);
-      callback();
-    },
-  });
+      flush(callback) {
+        this.push(this.accumulatedString);
+        callback();
+      },
+    });
 
   class ConditionalFileWriter extends Writable {
     constructor(outputNameStarter, path, lines, ...options) {
@@ -161,7 +168,11 @@ const split = async () => {
     return;
   }
 
-  await handlePipeline(readStream, transformToOneLine, customWritableStream);
+  await handlePipeline(
+    readStream,
+    createTransformToOneLine(lines),
+    customWritableStream,
+  );
 };
 
 await split();
