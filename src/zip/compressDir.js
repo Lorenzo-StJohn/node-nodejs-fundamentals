@@ -1,8 +1,10 @@
 import { stat, access, readdir, rm, mkdir } from 'fs/promises';
 import { Transform } from 'stream';
-import { createBrotliCompress, constants } from 'zlib';
+import { createBrotliCompress, constants, brotliCompress } from 'zlib';
 import { join, dirname, relative } from 'path';
 import { fileURLToPath } from 'url';
+import { createWriteStream } from 'fs';
+import { promisify } from 'util';
 
 const compressDir = async () => {
   // Folder workspace should be either in project root folder or in src/zip
@@ -11,6 +13,8 @@ const compressDir = async () => {
   const COMPRESS_LEVEL = 4;
   const FOLDER_PATHS = ['workspace', 'toCompress'];
   const OUTPUT_FILE_PATHS = ['compressed', 'archive.br'];
+  const START_METADATA = '?';
+  const END_METADATA = '!';
 
   const pathToThisFile = fileURLToPath(import.meta.url);
   const pathToThisFolder = dirname(pathToThisFile);
@@ -75,25 +79,24 @@ const compressDir = async () => {
     return;
   }
 
+  const pathToOutputFile = join(pathToOutputFolder, OUTPUT_FILE_PATHS.at(-1));
+  const writeStream = createWriteStream(pathToOutputFile);
+
   const stringTransform = new Transform({
     transform(chunk, encoding, callback) {
       callback(null, chunk.toString('base64'));
     },
   });
 
-  const compressor = createBrotliCompress({
-    params: {
-      [constants.BROTLI_PARAM_QUALITY]: COMPRESS_LEVEL,
-    },
+  const compressorParams = {
+    [constants.BROTLI_PARAM_QUALITY]: COMPRESS_LEVEL,
+  };
+
+  const compressStream = createBrotliCompress({
+    params: compressorParams,
   });
 
-  const createCompressTransform = (compressor) => {
-    return new Transform({
-      transform(chunk, encoding, callback) {
-        callback(null, compressor(chunk));
-      },
-    });
-  };
+  const compress = promisify(brotliCompress);
 
   const createMetadata = async (entry, pathToFolder) => {
     const entryStat = await stat(entry);
@@ -106,27 +109,86 @@ const compressDir = async () => {
     return JSON.stringify(entryObj);
   };
 
-  const handleFile = async (metadataJson, entry) => {};
+  const handleFile = async (
+    metadataJson,
+    entry,
+    writeStream,
+    compress,
+    compressStream,
+    stringTransform,
+  ) => {
+    await writeStream.write(START_METADATA);
+    const metadataCompressed = await compress(metadataJson);
+    const metadataStr = metadataCompressed.toString('base64');
+    await writeStream.write(metadataStr);
+    await writeStream.write(END_METADATA);
+  };
 
-  const handleFolder = async (metadataJson) => {};
+  const handleFolder = async (
+    metadataJson,
+    writeStream,
+    compress,
+    compressStream,
+    stringTransform,
+  ) => {
+    await writeStream.write(START_METADATA);
+    const metadataCompressed = await compress(metadataJson);
+    const metadataStr = metadataCompressed.toString('base64');
+    await writeStream.write(metadataStr);
+    await writeStream.write(END_METADATA);
+  };
 
-  const readRecursively = async (pathToCurrentFolder, pathToFolder) => {
+  const readRecursively = async (
+    pathToCurrentFolder,
+    pathToFolder,
+    writeStream,
+    compress,
+    compressStream,
+    stringTransform,
+  ) => {
     const entries = await readdir(pathToCurrentFolder);
     for (const entryWithoutFolder of entries) {
       const entry = join(pathToCurrentFolder, entryWithoutFolder);
       const metadataJson = await createMetadata(entry, pathToFolder);
       const metadataObj = JSON.parse(metadataJson);
       if (metadataObj.type === 'file') {
-        await handleFile(metadataJson, entry);
+        await handleFile(
+          metadataJson,
+          entry,
+          writeStream,
+          compress,
+          compressStream,
+          stringTransform,
+        );
       } else {
-        await handleFolder(metadataJson);
-        await readRecursively(entry, pathToFolder);
+        await handleFolder(
+          metadataJson,
+          writeStream,
+          compress,
+          compressStream,
+          stringTransform,
+        );
+        await readRecursively(
+          entry,
+          pathToFolder,
+          writeStream,
+          compress,
+          compressStream,
+          stringTransform,
+        );
       }
     }
   };
 
   try {
-    await readRecursively(pathToFolder, pathToFolder);
+    await readRecursively(
+      pathToFolder,
+      pathToFolder,
+      writeStream,
+      compress,
+      compressStream,
+      stringTransform,
+    );
   } catch (err) {
     console.error(err);
     return;
