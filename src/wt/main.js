@@ -101,6 +101,63 @@ const main = async () => {
       }),
     );
   }
+
+  class MinBinaryHeap {
+    constructor() {
+      this.array = [];
+    }
+
+    getMinElement() {
+      const minElement = this.array[0];
+      this.heapify();
+      return minElement;
+    }
+
+    heapify() {
+      this.array[0] = this.array.pop();
+      let currentIndex = 0;
+      while (
+        (currentIndex * 2 + 1 < this.array.length &&
+          this.array[currentIndex].value >
+            this.array[currentIndex * 2 + 1].value) ||
+        (currentIndex * 2 + 2 < this.array.length &&
+          this.array[currentIndex].value >
+            this.array[currentIndex * 2 + 2].value)
+      ) {
+        if (
+          currentIndex * 2 + 2 < this.array.length &&
+          this.array[currentIndex * 2 + 2].value <
+            this.array[currentIndex * 2 + 1].value
+        ) {
+          const temp = this.array[currentIndex * 2 + 2];
+          this.array[currentIndex * 2 + 2] = this.array[currentIndex];
+          this.array[currentIndex] = temp;
+          currentIndex = currentIndex * 2 + 2;
+        } else {
+          const temp = this.array[currentIndex * 2 + 1];
+          this.array[currentIndex * 2 + 1] = this.array[currentIndex];
+          this.array[currentIndex] = temp;
+          currentIndex = currentIndex * 2 + 1;
+        }
+      }
+    }
+
+    addNewElement(element) {
+      let currentIndex = this.array.length;
+      this.array.push(element);
+      while (
+        currentIndex > 0 &&
+        this.array[Math.floor((currentIndex - 1) / 2)].value > element.value
+      ) {
+        this.array[currentIndex] =
+          this.array[Math.floor((currentIndex - 1) / 2)];
+        this.array[Math.floor((currentIndex - 1) / 2)] = element;
+        currentIndex = Math.floor((currentIndex - 1) / 2);
+      }
+      const arr = this.array.map((el) => el.value);
+    }
+  }
+
   try {
     await Promise.all(workersArray);
 
@@ -108,23 +165,34 @@ const main = async () => {
 
     const result = new Array(array.length);
 
-    let minValue;
+    const heap = new MinBinaryHeap();
 
-    let currentArray;
+    for (let j = 0; j < n; j += 1) {
+      if (workersPointers[j] < workersResults[j].length) {
+        heap.addNewElement({
+          value: workersResults[j][workersPointers[j]],
+          source: j,
+        });
+        ++workersPointers[j];
+      }
+    }
 
     for (let i = 0; i < array.length; i += 1) {
-      minValue = Infinity;
-      currentArray = -1;
-      for (let j = 0; j < n; ++j) {
-        if (workersPointers[j] < workersResults[j].length) {
-          if (workersResults[j][workersPointers[j]] < minValue) {
-            minValue = workersResults[j][workersPointers[j]];
-            currentArray = j;
-          }
-        }
+      const currentElement = heap.getMinElement();
+      result[i] = currentElement.value;
+      if (
+        workersPointers[currentElement.source] <
+        workersResults[currentElement.source].length
+      ) {
+        heap.addNewElement({
+          value:
+            workersResults[currentElement.source][
+              workersPointers[currentElement.source]
+            ],
+          source: currentElement.source,
+        });
+        ++workersPointers[currentElement.source];
       }
-      result[i] = minValue;
-      ++workersPointers[currentArray];
     }
     console.log(result);
   } catch (err) {
