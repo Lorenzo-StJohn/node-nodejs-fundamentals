@@ -100,24 +100,50 @@ const decompressDir = async () => {
     let needMeta;
     let needContent;
     let needMetaSize = 4;
+    let metadataSize = Buffer.alloc(0);
     let metadata = Buffer.alloc(0);
     let mode = 'metadata-size';
+    let isContinueLoop = true;
     for await (const chunk of decompress) {
       buffer = Buffer.concat([buffer, chunk]);
-      if (mode === 'metadata-size') {
-        if (buffer.length >= needMetaSize) {
-          metadata = Buffer.concat([metadata, buffer.slice(0, needMetaSize)]);
-          buffer = buffer.slice(needMetaSize, buffer.length);
-          currentMetaSize = metadata.readUInt32BE(0);
-          metadata = Buffer.alloc(0);
-          mode = 'metadata';
-          needMetaSize = 4;
-          needMeta = currentMetaSize;
-          console.log(currentMetaSize);
-        } else {
-          needMetaSize -= buffer.length;
-          metadata = Buffer.concat([metadata, buffer]);
-          buffer = Buffer.alloc(0);
+      while (isContinueLoop) {
+        if (mode === 'metadata-size') {
+          if (buffer.length >= needMetaSize) {
+            metadataSize = Buffer.concat([
+              metadataSize,
+              buffer.slice(0, needMetaSize),
+            ]);
+            buffer = buffer.slice(needMetaSize, buffer.length);
+            currentMetaSize = metadataSize.readUInt32BE(0);
+            metadataSize = Buffer.alloc(0);
+            mode = 'metadata';
+            needMetaSize = 4;
+            needMeta = currentMetaSize;
+          } else {
+            needMetaSize -= buffer.length;
+            metadataSize = Buffer.concat([metadataSize, buffer]);
+            buffer = Buffer.alloc(0);
+            isContinueLoop = false;
+          }
+        } else if ('metadata') {
+          if (buffer.length >= needMeta) {
+            metadata = Buffer.concat([metadata, buffer.slice(0, needMeta)]);
+            buffer = buffer.slice(needMeta, buffer.length);
+            currentFile = JSON.parse(metadata.toString());
+            metadata = Buffer.alloc(0);
+            if (currentFile.type === 'file') {
+              mode = 'content';
+              needContent = currentFile.fileSize;
+            } else {
+              await mkdir(join(pathToOutputFolder, currentFile.path));
+              mode = 'metadata-size';
+            }
+          } else {
+            needMeta -= buffer.length;
+            metadata = Buffer.concat(metadata, buffer);
+            buffer = Buffer.alloc(0);
+            isContinueLoop = false;
+          }
         }
       }
     }
