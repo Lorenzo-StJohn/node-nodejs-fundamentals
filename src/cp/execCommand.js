@@ -17,6 +17,10 @@ const execCommand = () => {
   child.stdout.pipe(process.stdout);
   child.stderr.pipe(process.stderr);
   process.stdin.pipe(child.stdin);
+
+  child.on('close', (code) => {
+    process.exit(code ?? 0);
+  });
 };
 
 execCommand();
