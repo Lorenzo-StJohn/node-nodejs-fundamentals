@@ -66,6 +66,21 @@ const main = async () => {
     console.error(err);
     return;
   }
+
+  const arraySplitted = [];
+  let alreadySplittedCounter = 0;
+  for (let i = 0; i < n; i += 1) {
+    const numberToNewArray = Math.ceil(
+      (array.length - alreadySplittedCounter) / (n - i),
+    );
+    arraySplitted.push(
+      array.slice(
+        alreadySplittedCounter,
+        alreadySplittedCounter + numberToNewArray,
+      ),
+    );
+    alreadySplittedCounter += numberToNewArray;
+  }
 };
 
 await main();
