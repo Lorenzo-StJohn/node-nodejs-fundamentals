@@ -84,8 +84,6 @@ const compressDir = async () => {
     [constants.BROTLI_PARAM_QUALITY]: COMPRESS_LEVEL,
   };
 
-  const compress = createBrotliCompress({ params: compressorParams });
-
   const createMetadata = async (entry, pathToFolder) => {
     const entryStat = await stat(entry);
     const entryType = entryStat.isFile() ? 'file' : 'directory';
@@ -130,19 +128,19 @@ const compressDir = async () => {
       const bufferWithMetadataSize = createBufferWithMetadataSize(metadataSize);
       isSuccess = globalStream.write(bufferWithMetadataSize);
       if (!isSuccess) {
-        await new Promise((resolve) => writable.once('drain', resolve));
+        await new Promise((resolve) => globalStream.once('drain', resolve));
       }
       const bufferWithMetadata = createBufferWithMetadata(metadataJson);
       isSuccess = globalStream.write(bufferWithMetadata);
       if (!isSuccess) {
-        await new Promise((resolve) => writable.once('drain', resolve));
+        await new Promise((resolve) => globalStream.once('drain', resolve));
       }
       if (metadataObj.type === 'file') {
         const readStream = createReadStream(entry);
         for await (const chunk of readStream) {
           isSuccess = globalStream.write(chunk);
           if (!isSuccess) {
-            await new Promise((resolve) => writable.once('drain', resolve));
+            await new Promise((resolve) => globalStream.once('drain', resolve));
           }
         }
       } else {
