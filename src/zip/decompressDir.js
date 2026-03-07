@@ -81,15 +81,6 @@ const decompressDir = async () => {
     return;
   }
 
-  const handleMetadata = async (metadata, pathToOutputFolder) => {
-    const metadataObj = JSON.parse(metadata);
-    const path = join(pathToOutputFolder, metadataObj.path);
-    if (metadataObj.type === 'directory') {
-      await mkdir(path);
-    }
-    return [path, size];
-  };
-
   const processInput = async (pathToInputFile, pathToOutputFolder) => {
     const readStream = createReadStream(pathToInputFile);
     const decompress = createBrotliDecompress();
@@ -104,7 +95,9 @@ const decompressDir = async () => {
     let metadata = Buffer.alloc(0);
     let mode = 'metadata-size';
     let isContinueLoop = true;
+    let writeStream;
     for await (const chunk of decompress) {
+      decompress.pause();
       buffer = Buffer.concat([buffer, chunk]);
       while (isContinueLoop) {
         if (mode === 'metadata-size') {
@@ -123,9 +116,8 @@ const decompressDir = async () => {
             needMetaSize -= buffer.length;
             metadataSize = Buffer.concat([metadataSize, buffer]);
             buffer = Buffer.alloc(0);
-            isContinueLoop = false;
           }
-        } else if ('metadata') {
+        } else if (mode === 'metadata') {
           if (buffer.length >= needMeta) {
             metadata = Buffer.concat([metadata, buffer.slice(0, needMeta)]);
             buffer = buffer.slice(needMeta, buffer.length);
@@ -134,18 +126,35 @@ const decompressDir = async () => {
             if (currentFile.type === 'file') {
               mode = 'content';
               needContent = currentFile.fileSize;
+              writeStream = createWriteStream(
+                join(pathToOutputFolder, currentFile.path),
+              );
             } else {
               await mkdir(join(pathToOutputFolder, currentFile.path));
               mode = 'metadata-size';
             }
           } else {
             needMeta -= buffer.length;
-            metadata = Buffer.concat(metadata, buffer);
+            metadata = Buffer.concat([metadata, buffer]);
             buffer = Buffer.alloc(0);
-            isContinueLoop = false;
+          }
+        } else {
+          if (buffer.length >= needContent) {
+            writeStream.write(buffer.slice(0, needContent));
+            buffer = buffer.slice(needContent, buffer.length);
+            mode = 'metadata-size';
+          } else {
+            needContent -= buffer.length;
+            writeStream.write(buffer);
+            buffer = Buffer.alloc(0);
           }
         }
+        if (buffer.length === 0) {
+          isContinueLoop = false;
+        }
       }
+      decompress.resume();
+      isContinueLoop = true;
     }
   };
 
