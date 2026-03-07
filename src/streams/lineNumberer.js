@@ -19,7 +19,7 @@ const lineNumberer = () => {
       this.lineCount ??= 1;
       for (const inputLine of inputLines) {
         if (inputLine.match(END_LINE)) {
-          outputString += inputLine;
+          outputString += inputLine.replace('\n', '\\n').replace('\r', '\\r');
         } else {
           const linesSplitted = inputLine.split('\\n');
           const outputArr = [];
