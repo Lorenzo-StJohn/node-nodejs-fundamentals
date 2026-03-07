@@ -1,4 +1,3 @@
-import { parseArgs } from 'util';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -9,23 +8,7 @@ const dynamic = async () => {
   // Call run() function and print result
   // Handle missing plugin case
 
-  const options = {
-    plugin: {
-      type: 'string',
-      default: [],
-      multiple: true,
-    },
-  };
-
-  let plugins;
-  try {
-    const { values } = parseArgs({ options, strict: false });
-    plugins = values.plugin;
-  } catch (err) {
-    console.error(err);
-    console.log('P. S. Reading arguments failed.');
-    return;
-  }
+  const plugins = process.argv.slice(2);
 
   const pathToThisFile = fileURLToPath(import.meta.url);
   const pathToThisFolder = dirname(pathToThisFile);
@@ -73,7 +56,6 @@ const dynamic = async () => {
       }
     }
   };
-
   executeImportedFunctions(importedObjs);
 };
 
