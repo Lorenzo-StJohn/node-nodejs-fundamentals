@@ -111,6 +111,30 @@ const main = async () => {
   }
   try {
     await Promise.all(workersArray);
+
+    const workersPointers = new Array(n).fill(0);
+
+    const result = new Array(array.length);
+
+    let minValue;
+
+    let currentArray;
+
+    for (let i = 0; i < array.length; i += 1) {
+      minValue = Infinity;
+      currentArray = -1;
+      for (let j = 0; j < n; ++j) {
+        if (workersPointers[j] < workersResults[j].length) {
+          if (workersResults[j][workersPointers[j]] < minValue) {
+            minValue = workersResults[j][workersPointers[j]];
+            currentArray = j;
+          }
+        }
+      }
+      result[i] = minValue;
+      ++workersPointers[currentArray];
+    }
+    console.log(result);
   } catch (err) {
     console.error(err);
   }
