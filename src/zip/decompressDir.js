@@ -4,10 +4,6 @@ import { fileURLToPath } from 'url';
 import { createWriteStream, createReadStream } from 'fs';
 import { Buffer } from 'buffer';
 import { createBrotliDecompress } from 'zlib';
-import { promisify } from 'util';
-import { pipeline } from 'stream/promises';
-import { Readable, Writable } from 'stream';
-import { PassThrough } from 'node:stream';
 
 const decompressDir = async () => {
   // Folder workspace should be either in project root folder or in src/zip
