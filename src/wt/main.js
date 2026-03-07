@@ -5,14 +5,6 @@ import { fileURLToPath } from 'url';
 import { Worker } from 'worker_threads';
 
 const main = async () => {
-  // Write your code here
-  // Read data.json containing array of numbers
-  // Split into N chunks (N = CPU cores)
-  // Create N workers, send one chunk to each
-  // Collect sorted chunks
-  // Merge using k-way merge algorithm
-  // Log final sorted array
-
   // The data.json should be either in project folder or in src/wt
 
   const n = cpus().length;
