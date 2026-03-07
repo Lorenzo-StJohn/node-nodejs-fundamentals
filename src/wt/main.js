@@ -1,3 +1,5 @@
+import { cpus } from 'os';
+
 const main = async () => {
   // Write your code here
   // Read data.json containing array of numbers
@@ -6,6 +8,8 @@ const main = async () => {
   // Collect sorted chunks
   // Merge using k-way merge algorithm
   // Log final sorted array
+
+  const n = cpus().length;
 };
 
 await main();
