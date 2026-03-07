@@ -10,6 +10,7 @@ const execCommand = () => {
   const otherArgs = argsArray.slice(1);
 
   const child = spawn(cmdArg, otherArgs, {
+    env: { ...process.env },
     stdio: ['pipe', 'pipe', 'pipe'],
   });
 
