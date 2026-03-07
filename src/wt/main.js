@@ -2,6 +2,7 @@ import { cpus } from 'os';
 import { access, readFile } from 'fs/promises';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { Worker } from 'worker_threads';
 
 const main = async () => {
   // Write your code here
@@ -17,6 +18,7 @@ const main = async () => {
   const n = cpus().length;
 
   const JSON_NAME = 'data.json';
+  const WORKER_FILE_NAME = 'worker.js';
   const pathToThisFile = fileURLToPath(import.meta.url);
   const pathToThisFolder = dirname(pathToThisFile);
   const pathToRoot = join(pathToThisFolder, '..', '..');
@@ -80,6 +82,37 @@ const main = async () => {
       ),
     );
     alreadySplittedCounter += numberToNewArray;
+  }
+
+  const workersArray = [];
+
+  const pathToWorker = join(pathToThisFolder, WORKER_FILE_NAME);
+
+  const workersResults = new Array(n);
+
+  for (let i = 0; i < n; i += 1) {
+    workersArray.push(
+      new Promise((resolve, reject) => {
+        const worker = new Worker(pathToWorker);
+        worker.postMessage(arraySplitted[i]);
+        worker.on('message', (data) => {
+          workersResults[i] = data.array;
+          resolve(data);
+          worker.terminate();
+        });
+        worker.on('error', (err) => {
+          reject(err);
+        });
+        worker.on('exit', (code) => {
+          reject(`Worker have exited with ${code} code.`);
+        });
+      }),
+    );
+  }
+  try {
+    await Promise.all(workersArray);
+  } catch (err) {
+    console.error(err);
   }
 };
 
