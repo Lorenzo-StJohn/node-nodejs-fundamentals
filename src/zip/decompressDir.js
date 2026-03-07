@@ -3,19 +3,16 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { createWriteStream, createReadStream } from 'fs';
 import { Buffer } from 'buffer';
-import { brotliDecompress } from 'zlib';
+import { createBrotliDecompress } from 'zlib';
 import { promisify } from 'util';
 import { pipeline } from 'stream/promises';
-import { Readable } from 'stream';
+import { Readable, Writable } from 'stream';
+import { PassThrough } from 'node:stream';
 
 const decompressDir = async () => {
   // Folder workspace should be either in project root folder or in src/zip
   // Folder compressed with archive.br inside it should be inside workspace folder
 
-  const START_METADATA = '?';
-  const END_METADATA = '!';
-  const START_CONTENT = '_';
-  const END_CONTENT = '#';
   const INPUT_FILE_PATHS = ['workspace', 'compressed', 'archive.br'];
   const OUTPUT_FOLDER_NAME = 'decompressed';
 
@@ -84,54 +81,43 @@ const decompressDir = async () => {
     return;
   }
 
-  const decompress = promisify(brotliDecompress);
-
   const handleMetadata = async (metadata, pathToOutputFolder) => {
-    const metadataBuffer = Buffer.from(metadata, 'base64');
-    const metadataJson = await decompress(metadataBuffer);
-    const metadataObj = JSON.parse(metadataJson);
+    const metadataObj = JSON.parse(metadata);
     const path = join(pathToOutputFolder, metadataObj.path);
     if (metadataObj.type === 'directory') {
       await mkdir(path);
     }
-    return path;
-  };
-
-  const handleContent = async (currentFile, entry) => {
-    const entryBuffer = Buffer.from(entry, 'base64');
-    const entryDecompressed = await decompress(entryBuffer);
-    const writeStream = createWriteStream(currentFile, { flags: 'a' });
-    await pipeline(Readable.from(entryDecompressed), writeStream);
+    return [path, size];
   };
 
   const processInput = async (pathToInputFile, pathToOutputFolder) => {
     const readStream = createReadStream(pathToInputFile);
-    let mode = 'start';
-    let metadata = '';
-    const DELIMITER = /([%!?#_])/;
+    const decompress = createBrotliDecompress();
+    readStream.pipe(decompress);
+    let buffer = Buffer.alloc(0);
     let currentFile;
-    for await (const chunk of readStream) {
-      const str = chunk.toString();
-      const strArr = str.split(DELIMITER);
-      for (const entry of strArr) {
-        if (entry.match(DELIMITER)) {
-          if (entry === START_METADATA) {
-            mode = 'metadata';
-          } else if (entry === END_METADATA) {
-            currentFile = await handleMetadata(metadata, pathToOutputFolder);
-            metadata = '';
-            mode = '';
-          } else if (entry === START_CONTENT) {
-            mode = 'content';
-          } else if (entry === END_CONTENT) {
-            mode = '';
-          }
+    let currentMetaSize;
+    let needMeta;
+    let needContent;
+    let needMetaSize = 4;
+    let metadata = Buffer.alloc(0);
+    let mode = 'metadata-size';
+    for await (const chunk of decompress) {
+      buffer = Buffer.concat([buffer, chunk]);
+      if (mode === 'metadata-size') {
+        if (buffer.length >= needMetaSize) {
+          metadata = Buffer.concat([metadata, buffer.slice(0, needMetaSize)]);
+          buffer = buffer.slice(needMetaSize, buffer.length);
+          currentMetaSize = metadata.readUInt32BE(0);
+          metadata = Buffer.alloc(0);
+          mode = 'metadata';
+          needMetaSize = 4;
+          needMeta = currentMetaSize;
+          console.log(currentMetaSize);
         } else {
-          if (mode === 'metadata') {
-            metadata += entry;
-          } else if (mode === 'content') {
-            await handleContent(currentFile, entry);
-          }
+          needMetaSize -= buffer.length;
+          metadata = Buffer.concat([metadata, buffer]);
+          buffer = Buffer.alloc(0);
         }
       }
     }
