@@ -51,11 +51,10 @@ const verify = async () => {
   try {
     pathToJsonFile = await getFilePath(pathToRoot, pathToThisFolder, JSON_NAME);
   } catch (err) {
-    console.error(err);
     console.log(
       'P. S. File named checksums.json should be either in project root folder or in src/hash folder.',
     );
-    return;
+    throw err;
   }
 
   const getFolderPath = async (pathToRoot, pathToThisFolder, folderName) => {

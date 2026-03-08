@@ -38,11 +38,10 @@ const restore = async () => {
   try {
     pathToJsonFile = await getFilePath(pathToRoot, pathToThisFolder, JSON_NAME);
   } catch (err) {
-    console.error(err);
     console.log(
       'P. S. File named snapshot.json should be either in project root folder or in src/fs folder.',
     );
-    return;
+    throw err;
   }
 
   const readJsonFile = async (pathToJsonFile) => {
@@ -75,10 +74,11 @@ const restore = async () => {
   try {
     await createFolder(pathToFolder);
   } catch (err) {
-    console.error(err);
     if (err.message === 'FS operation failed') {
       console.log('P. S. Directory workspace_restored already exists.');
+      throw err;
     }
+    console.error(err);
     return;
   }
 

@@ -49,11 +49,10 @@ const compressDir = async () => {
       FOLDER_PATHS,
     );
   } catch (err) {
-    console.error(err);
     console.log(
       'P. S. Folder named workspace with folder named toCompress should be either in project root folder or in src/zip.',
     );
-    return;
+    throw err;
   }
 
   const pathToOutputFolder = join(

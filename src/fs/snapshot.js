@@ -41,11 +41,10 @@ const snapshot = async () => {
       FOLDER_NAME,
     );
   } catch (err) {
-    console.error(err);
     console.log(
       'P. S. Folder named workspace should be either in project root folder or in src/fs folder.',
     );
-    return;
+    throw err;
   }
 
   const readRecursively = async (

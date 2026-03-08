@@ -54,11 +54,10 @@ const merge = async () => {
     );
     pathToFolder = dirname(pathToFolderWithParts);
   } catch (err) {
-    console.error(err);
     console.log(
       'P. S. Folder named workspace with folder named parts in it should be either in project root folder or in src/fs folder.',
     );
-    return;
+    throw err;
   }
 
   const getNamedArgs = (argName) => {
@@ -120,10 +119,11 @@ const merge = async () => {
         a.localeCompare(b, undefined, { sensitivity: 'base' }),
       );
     } catch (err) {
-      console.error(err);
       if (err.message === 'FS operation failed') {
         console.log('No files with .txt extension found.');
+        throw err;
       }
+      console.error(err);
       return;
     }
   }
@@ -160,10 +160,11 @@ const merge = async () => {
   try {
     await writeFiles(fileList, mergedFile, pathToFolderWithParts);
   } catch (err) {
-    console.error(err);
     if (err.message === 'FS operation failed') {
       console.log('Reading files failed.');
+      throw err;
     }
+    console.error(err);
   }
 };
 

@@ -46,11 +46,10 @@ const decompressDir = async () => {
       INPUT_FILE_PATHS,
     );
   } catch (err) {
-    console.error(err);
     console.log(
       'P. S. Folder workspace should be either in project root folder or in src/zip, compressed/archive.br should be inside workspace',
     );
-    return;
+    throw err;
   }
 
   const pathToOutputFolder = join(
