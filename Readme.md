@@ -11,6 +11,7 @@ This repository contains solutions for Node.js Fundamentals assignment. Please r
    ```bash
    git clone https://github.com/Lorenzo-StJohn/node-nodejs-fundamentals
    cd node-nodejs-fundamentals
+   git checkout develop
    ```
 
 ## Requirements
@@ -94,13 +95,13 @@ This repository contains solutions for Node.js Fundamentals assignment. Please r
 
 - `npm run streams:lineNumberer` - Add line numbers to stdin input
 
-  In some shells original command may not work correctly, it that case you can try this command instead: `node -e "process.stdout.write('hello\\nworld')" | node src/streams/lineNumberer.js` ot this: `(echo hello & echo world) | node src/streams/lineNumberer.js`
+  In some shells original command may not work correctly, in that case you can try this command instead: `node -e "process.stdout.write('hello\\nworld')" | node src/streams/lineNumberer.js` ot this: `(echo hello & echo world) | node src/streams/lineNumberer.js`
 
   ***
 
 - `npm run streams:filter` - Filter stdin lines by pattern
 
-  In some shells original command may not work correctly, it that case you can try this command instead: `node -e "process.stdout.write('hello\\nworld\\ntest')" | node src/streams/filter.js --pattern test` ot this: `(echo hello & echo world & echo test) | node src/streams/filter.js --pattern test`
+  In some shells original command may not work correctly, in that case you can try this command instead: `node -e "process.stdout.write('hello\\nworld\\ntest')" | node src/streams/filter.js --pattern test` ot this: `(echo hello & echo world & echo test) | node src/streams/filter.js --pattern test`
 
   ***
 
