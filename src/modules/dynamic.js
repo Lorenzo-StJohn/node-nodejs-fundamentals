@@ -38,7 +38,7 @@ const dynamic = async () => {
   try {
     importedObjs = await importRunFunctions(plugins);
   } catch (err) {
-    console.error(err);
+    console.error(err.message);
     process.exit(1);
   }
 
