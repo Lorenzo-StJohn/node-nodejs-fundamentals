@@ -138,6 +138,9 @@ const merge = async () => {
   ) => {
     await writeFile(outputFile, '');
     for (const file of inputFileList) {
+      if (file === '') {
+        continue;
+      }
       let contentBuffer;
       try {
         const path = join(pathToFolderWithParts, file);
