@@ -2,12 +2,6 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const dynamic = async () => {
-  // Write your code here
-  // Accept plugin name as CLI argument
-  // Dynamically import plugin from plugins/ directory
-  // Call run() function and print result
-  // Handle missing plugin case
-
   const plugins = process.argv.slice(2);
 
   const pathToThisFile = fileURLToPath(import.meta.url);
