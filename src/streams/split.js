@@ -90,7 +90,11 @@ const split = async () => {
         for (let i = 0; i < stringSplitted.length; ++i) {
           this.counter++;
           if (this.counter % lines === 0) {
-            this.push(stringSplitted[i]);
+            if (stringSplitted[i] === '') {
+              this.push('\n\n');
+            } else {
+              this.push(stringSplitted[i]);
+            }
           } else {
             this.push(stringSplitted[i] + '\n');
           }
@@ -126,7 +130,11 @@ const split = async () => {
         this.streams.push(createWriteStream(file, { flags: 'a' }));
       }
 
-      this.streams[fileNumber - 1].write(chunk, encoding, callback);
+      if (chunk.toString() === '\n\n') {
+        this.streams[fileNumber - 1].write(Buffer.from(''), encoding, callback);
+      } else {
+        this.streams[fileNumber - 1].write(chunk, encoding, callback);
+      }
     }
 
     _destroy(err, callback) {
