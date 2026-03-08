@@ -137,6 +137,11 @@ const decompressDir = async () => {
         } else {
           if (buffer.length >= needContent) {
             writeStream.write(buffer.slice(0, needContent));
+            await new Promise((resolve, reject) => {
+              writeStream.on('finish', resolve);
+              writeStream.on('error', reject);
+              writeStream.end();
+            });
             buffer = buffer.slice(needContent, buffer.length);
             mode = 'metadata-size';
           } else {
