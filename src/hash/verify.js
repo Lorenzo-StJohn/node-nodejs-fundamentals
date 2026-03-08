@@ -1,8 +1,8 @@
-import { createHash } from 'crypto';
-import { createReadStream } from 'fs';
-import { access, readFile } from 'fs/promises';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { createHash } from 'node:crypto';
+import { createReadStream } from 'node:fs';
+import { access, readFile } from 'node:fs/promises';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const verify = async () => {
   // File checksums.json should be either in project folder or in src/hash

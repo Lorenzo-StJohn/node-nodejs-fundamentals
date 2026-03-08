@@ -1,10 +1,10 @@
-import { parseArgs } from 'util';
-import { access, mkdir, rm } from 'fs/promises';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { createReadStream, createWriteStream } from 'fs';
-import { Transform, Writable } from 'stream';
-import { pipeline } from 'stream/promises';
+import { parseArgs } from 'node:util';
+import { access, mkdir, rm } from 'node:fs/promises';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createReadStream, createWriteStream } from 'node:fs';
+import { Transform, Writable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 
 const split = async () => {
   // File source.txt should be either in project folder or in src/streams

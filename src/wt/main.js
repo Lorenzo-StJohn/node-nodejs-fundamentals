@@ -1,8 +1,8 @@
-import { cpus } from 'os';
-import { access, readFile } from 'fs/promises';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { Worker } from 'worker_threads';
+import { cpus } from 'node:os';
+import { access, readFile } from 'node:fs/promises';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { Worker } from 'node:worker_threads';
 
 const main = async () => {
   // The data.json should be either in project folder or in src/wt

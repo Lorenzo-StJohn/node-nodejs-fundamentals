@@ -1,4 +1,4 @@
-import { parseArgs } from 'util';
+import { parseArgs } from 'node:util';
 
 const progress = () => {
   const COLOR_RESET = '\x1b[0m';

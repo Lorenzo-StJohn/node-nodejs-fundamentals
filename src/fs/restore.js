@@ -1,7 +1,7 @@
-import { access, readFile, mkdir, writeFile } from 'fs/promises';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { Buffer } from 'buffer';
+import { access, readFile, mkdir, writeFile } from 'node:fs/promises';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { Buffer } from 'node:buffer';
 
 const restore = async () => {
   // The snapshot.json should be either in project folder or in src/fs

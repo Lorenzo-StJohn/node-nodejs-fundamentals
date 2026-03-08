@@ -1,6 +1,6 @@
-import { Transform } from 'stream';
-import { pipeline } from 'stream/promises';
-import { parseArgs } from 'util';
+import { Transform } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
+import { parseArgs } from 'node:util';
 
 const filter = () => {
   // pattern should be valid regex, in any other case will be used default pattern /.*/

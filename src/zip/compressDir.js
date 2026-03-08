@@ -1,11 +1,11 @@
-import { stat, access, readdir, rm, mkdir } from 'fs/promises';
-import { PassThrough } from 'stream';
-import { createBrotliCompress, constants } from 'zlib';
-import { join, dirname, relative } from 'path';
-import { fileURLToPath } from 'url';
-import { createWriteStream, createReadStream } from 'fs';
-import { pipeline } from 'stream/promises';
-import { Buffer } from 'buffer';
+import { stat, access, readdir, rm, mkdir } from 'node:fs/promises';
+import { PassThrough } from 'node:stream';
+import { createBrotliCompress, constants } from 'node:zlib';
+import { join, dirname, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createWriteStream, createReadStream } from 'node:fs';
+import { pipeline } from 'node:stream/promises';
+import { Buffer } from 'node:buffer';
 
 const compressDir = async () => {
   // Folder workspace should be either in project root folder or in src/zip

@@ -1,7 +1,7 @@
-import { parseArgs } from 'util';
-import { access, stat, readdir } from 'fs/promises';
-import { join, dirname, relative, extname } from 'path';
-import { fileURLToPath } from 'url';
+import { parseArgs } from 'node:util';
+import { access, stat, readdir } from 'node:fs/promises';
+import { join, dirname, relative, extname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const findByExt = async () => {
   // The workspace directory should be either in project folder or in src/fs

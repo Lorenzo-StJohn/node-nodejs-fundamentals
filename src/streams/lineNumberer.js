@@ -1,5 +1,5 @@
-import { Transform } from 'stream';
-import { pipeline } from 'stream/promises';
+import { Transform } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 
 const lineNumberer = () => {
   const lineNumberTransform = new Transform({

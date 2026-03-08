@@ -1,6 +1,6 @@
-import { access, readdir, stat, readFile, writeFile } from 'fs/promises';
-import { join, dirname, extname } from 'path';
-import { fileURLToPath } from 'url';
+import { access, readdir, stat, readFile, writeFile } from 'node:fs/promises';
+import { join, dirname, extname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const merge = async () => {
   // The workspace directory should be either in project folder or in src/fs

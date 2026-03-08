@@ -1,4 +1,4 @@
-import { createInterface } from 'readline/promises';
+import { createInterface } from 'node:readline/promises';
 
 const interactive = () => {
   const rl = createInterface({

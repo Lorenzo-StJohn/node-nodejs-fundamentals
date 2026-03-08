@@ -1,6 +1,6 @@
-import { stat, access, readFile, writeFile, readdir } from 'fs/promises';
-import { join, dirname, relative } from 'path';
-import { fileURLToPath } from 'url';
+import { stat, access, readFile, writeFile, readdir } from 'node:fs/promises';
+import { join, dirname, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const snapshot = async () => {
   // The workspace directory should be either in project folder or in src/fs

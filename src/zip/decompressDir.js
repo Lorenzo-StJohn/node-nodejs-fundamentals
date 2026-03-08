@@ -1,9 +1,9 @@
-import { access, mkdir, rm } from 'fs/promises';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { createWriteStream, createReadStream } from 'fs';
-import { Buffer } from 'buffer';
-import { createBrotliDecompress } from 'zlib';
+import { access, mkdir, rm } from 'node:fs/promises';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createWriteStream, createReadStream } from 'node:fs';
+import { Buffer } from 'node:buffer';
+import { createBrotliDecompress } from 'node:zlib';
 
 const decompressDir = async () => {
   // Folder workspace should be either in project root folder or in src/zip
