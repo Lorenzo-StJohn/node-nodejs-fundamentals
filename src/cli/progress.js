@@ -1,6 +1,12 @@
 import { parseArgs } from 'node:util';
 
 const progress = () => {
+  // If you want to use color flag, be aware that some shells treat # symbol as comment starting,
+  // so you may need to quote color argument, for example:
+  // node src / cli / progress--interval 100 --color '#66aaee' --duration 6000 --length 50
+  // Alternatively you can temporary disable treating it as comment in bash shell with this command:
+  // shopt - u interactive_comments
+
   const COLOR_RESET = '\x1b[0m';
   const DEFAULT_DURATION = '5000';
   const DEFAULT_INTERVAL = '100';
