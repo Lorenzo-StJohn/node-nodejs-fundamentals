@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { createReadStream, createWriteStream } from 'node:fs';
 import { Transform, Writable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
+import { Buffer } from 'node:buffer';
 
 const split = async () => {
   // File source.txt should be either in project folder or in src/streams
