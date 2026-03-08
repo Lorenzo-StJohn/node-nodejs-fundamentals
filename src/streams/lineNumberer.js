@@ -2,6 +2,12 @@ import { Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 
 const lineNumberer = () => {
+  // In some shells original command may not work correctly,
+  // in that case you can try this command instead:
+  // node -e "process.stdout.write('hello\\nworld')" | node src/streams/lineNumberer.js
+  // ot this:
+  // (echo hello & echo world) | node src/streams/lineNumberer.js
+
   const lineNumberTransform = new Transform({
     transform(chunk, encoding, callback) {
       const END_LINE = /(\r?\n)/;
