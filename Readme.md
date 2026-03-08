@@ -101,7 +101,9 @@ This repository contains solutions for Node.js Fundamentals assignment. Please r
 
 - `npm run streams:filter` - Filter stdin lines by pattern
 
-  In some shells original command may not work correctly, in that case you can try this command instead: `node -e "process.stdout.write('hello\\nworld\\ntest')" | node src/streams/filter.js --pattern test` ot this: `(echo hello & echo world & echo test) | node src/streams/filter.js --pattern test`
+  In some shells original command may not work correctly, ingit that case you can try this command instead: `node -e "process.stdout.write('hello\\nworld\\ntest')" | node src/streams/filter.js --pattern test` ot this: `(echo hello & echo world & echo test) | node src/streams/filter.js --pattern test`
+
+  P. S. Pattern should be valid regex, in any other case default pattern /.\*/ will be used instead. Starting and finishing slashes will be added automatically, don't add them to your custom pattern.
 
   ***
 
